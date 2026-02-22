@@ -1,0 +1,9 @@
+# Environment variables
+.env
+
+# Python cache
+bike_app_backup.sql
+__pycache__/
+.idea/
+.DS_Store
+mysql_data/
