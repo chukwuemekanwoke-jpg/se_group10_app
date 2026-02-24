@@ -1,4 +1,6 @@
-from flask import Flask, jsonify
+import os
+import requests
+from flask import Flask, jsonify, request, abort
 from db import get_db, close_db
 
 app = Flask(__name__)
@@ -33,7 +35,6 @@ def api_stations():
     cur.close()
     return jsonify(rows)
 
-from flask import request, abort
 
 @app.route("/api/latest")
 def api_latest():
@@ -139,5 +140,62 @@ def api_weather():
     cur.close()
     return jsonify(rows)
 
+#Live Bikes from JCDeceaux
+
+@app.route("/api/live/bikes")
+def api_live_bikes():
+    """
+    Live JCDecaux data (current stations)
+    """
+    api_key = os.getenv("JCDECAUX_API_KEY")
+    contract = os.getenv("JCDECAUX_CONTRACT", "Dublin")
+
+    if not api_key:
+        return jsonify({"error": "Missing JCDECAUX_API_KEY"}), 500
+
+    url = "https://api.jcdecaux.com/vls/v1/stations"
+    params = {
+        "contract": contract,
+        "apiKey": api_key
+    }
+
+    try:
+        r = requests.get(url, params=params, timeout=10)
+        r.raise_for_status()
+        return jsonify(r.json())
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+    
+
+#Live weather from OpenWeather
+
+@app.route("/api/live/weather")
+def api_live_weather():
+    """
+    Live OpenWeather current weather (Dublin coords by default)
+    """
+    api_key = os.getenv("OPENWEATHER_API_KEY")
+    lat = os.getenv("OPENWEATHER_LAT", "53.3498")
+    lon = os.getenv("OPENWEATHER_LON", "-6.2603")
+
+    if not api_key:
+        return jsonify({"error": "Missing OPENWEATHER_API_KEY"}), 500
+
+    url = "https://api.openweathermap.org/data/2.5/weather"
+    params = {
+        "lat": lat,
+        "lon": lon,
+        "appid": api_key,
+        "units": "metric"
+    }
+
+    try:
+        r = requests.get(url, params=params, timeout=10)
+        r.raise_for_status()
+        return jsonify(r.json())
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="127.0.0.1", port=5000, debug=True)
+
