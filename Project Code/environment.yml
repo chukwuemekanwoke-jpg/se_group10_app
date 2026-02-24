@@ -1,0 +1,6 @@
+name: comp30830
+channels:
+  - defaults
+dependencies:
+  - python=3.14
+prefix: C:\Users\nwoke\anaconda3\envs\comp30830
