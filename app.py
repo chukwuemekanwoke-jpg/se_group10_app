@@ -148,7 +148,7 @@ def api_live_bikes():
     Live JCDecaux data (current stations)
     """
     api_key = os.getenv("JCDECAUX_API_KEY")
-    contract = os.getenv("JCDECAUX_CONTRACT", "Dublin")
+    contract = os.getenv("JCDECAUX_CONTRACT_NAME", "Dublin")
 
     if not api_key:
         return jsonify({"error": "Missing JCDECAUX_API_KEY"}), 500
@@ -175,8 +175,8 @@ def api_live_weather():
     Live OpenWeather current weather (Dublin coords by default)
     """
     api_key = os.getenv("OPENWEATHER_API_KEY")
-    lat = os.getenv("OPENWEATHER_LAT", "53.3498")
-    lon = os.getenv("OPENWEATHER_LON", "-6.2603")
+    lat = os.getenv("WEATHER_LAT", "53.3498")
+    lon = os.getenv("WEATHER_LON", "-6.2603")
 
     if not api_key:
         return jsonify({"error": "Missing OPENWEATHER_API_KEY"}), 500
