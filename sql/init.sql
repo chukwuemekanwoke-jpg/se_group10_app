@@ -25,3 +25,30 @@ CREATE TABLE IF NOT EXISTS availability (
   CONSTRAINT fk_station FOREIGN KEY (number) REFERENCES station(number),
   INDEX idx_last_update (last_update)
 );
+
+CREATE TABLE IF NOT EXISTS weather_current (
+  dt_unix INT NOT NULL,
+  dt_utc DATETIME,
+  city_id INT,
+  city_name VARCHAR(128),
+  lat DOUBLE,
+  lon DOUBLE,
+  temp DOUBLE,
+  feels_like DOUBLE,
+  temp_min DOUBLE,
+  temp_max DOUBLE,
+  pressure INT,
+  humidity INT,
+  visibility INT,
+  wind_speed DOUBLE,
+  wind_deg INT,
+  clouds_all INT,
+  rain_1h DOUBLE,
+  snow_1h DOUBLE,
+  weather_id INT,
+  weather_main VARCHAR(64),
+  weather_desc VARCHAR(128),
+  weather_icon VARCHAR(16),
+  PRIMARY KEY (dt_unix),
+  INDEX idx_dt_utc (dt_utc)
+);
