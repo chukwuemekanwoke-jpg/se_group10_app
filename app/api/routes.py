@@ -2,10 +2,10 @@ import os
 import requests
 from flask import jsonify, request, abort
 from . import api_bp
-from db import get_db
+from app.db import get_db
 
 
-@api_bp.route("/api/stations")
+@api_bp.route("/stations")
 def api_stations():
     db = get_db()
     cur = db.cursor(dictionary=True)
@@ -27,7 +27,7 @@ def api_stations():
     return jsonify(rows)
 
 
-@api_bp.route("/api/latest")
+@api_bp.route("/latest")
 def api_latest():
     db = get_db()
     cur = db.cursor(dictionary=True)
@@ -49,7 +49,7 @@ def api_latest():
     return jsonify(rows)
 
 
-@api_bp.route("/api/availability")
+@api_bp.route("/availability")
 def api_availability():
     number = request.args.get("number", type=int)
     limit = request.args.get("limit", default=50, type=int)
@@ -75,7 +75,7 @@ def api_availability():
     return jsonify(rows)
 
 
-@api_bp.route("/api/weather/latest")
+@api_bp.route("/weather/latest")
 def api_weather_latest():
     db = get_db()
     cur = db.cursor(dictionary=True)
@@ -92,7 +92,7 @@ def api_weather_latest():
     return jsonify(row or {})
 
 
-@api_bp.route("/api/weather")
+@api_bp.route("/weather")
 def api_weather():
     limit = request.args.get("limit", default=48, type=int)
     limit = max(1, min(limit, 500))
@@ -112,7 +112,7 @@ def api_weather():
     return jsonify(rows)
 
 
-@api_bp.route("/api/live/bikes")
+@api_bp.route("/live/bikes")
 def api_live_bikes():
     api_key = os.getenv("JCDECAUX_API_KEY")
     contract = os.getenv("JCDECAUX_CONTRACT_NAME", "Dublin")
@@ -131,7 +131,7 @@ def api_live_bikes():
         return jsonify({"error": str(e)}), 500
 
 
-@api_bp.route("/api/live/weather")
+@api_bp.route("/live/weather")
 def api_live_weather():
     api_key = os.getenv("OPENWEATHER_API_KEY")
     lat = os.getenv("WEATHER_LAT", "53.3498")

@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bike Map</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+
+<body>
+    <div class="layout">
+        <div id="sidebar">
+            <h2>Station Info</h2>
+            <div id="stationDetails">Click a station...</div>
+
+            <h2>Weather</h2>
+            <div id="weatherDetails">Loading...</div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ apikey }}&callback=initMap" async defer></script>
+</body>
+</html>

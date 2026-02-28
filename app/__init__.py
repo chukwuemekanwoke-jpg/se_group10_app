@@ -1,20 +1,19 @@
 from flask import Flask
 from dotenv import load_dotenv
-from db import close_db
+from .db import close_db
+from app.main import main_bp
+from app.api import api_bp
+import os
 
 def create_app():
     load_dotenv()
-
     app = Flask(__name__)
 
-    # Close DB connections after request
     app.teardown_appcontext(close_db)
 
-    # Register Blueprints
-    from app.main.routes import main_bp
     app.register_blueprint(main_bp)
-
-    from app.api import api_bp
-    app.register_blueprint(api_bp)
-
+    app.register_blueprint(api_bp, url_prefix="/api")
+    
+    app.config["GOOGLE_MAPS_API_KEY"] = os.getenv("GOOGLE_MAPS_API_KEY", "")
+    
     return app

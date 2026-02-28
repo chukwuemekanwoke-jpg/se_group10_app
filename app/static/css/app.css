@@ -1,0 +1,21 @@
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  height: 100vh;
+}
+
+#sidebar {
+  padding: 12px;
+  border-right: 1px solid #ccc;
+  overflow-y: auto;
+}
+
+#map {
+  height: 100vh;     /* IMPORTANT */
+  width: 100%;
+}
