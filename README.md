@@ -39,7 +39,7 @@ python app.py
 ```
 Then open: http://<your-EC2-public-IP>:5000
 
-## Environment Variables (DO NOT put real keys in code!)
+## Environment Variables
 
 Set these in your terminal before running:
 ```bash
