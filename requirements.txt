@@ -2,6 +2,7 @@ flask
 sqlalchemy
 pymysql
 requests
+python-dotenv
 scikit-learn
 pandas
 numpy
