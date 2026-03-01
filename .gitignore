@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+# Virtual environments
+venv/
+env/
+.env
+
+# Secret keys and credentials - NEVER upload these
+*.pem
+.env
+config.py
+
+# Database files
+*.sql
+*.db
+*.sqlite
+
+# ML model (large file - optional to exclude)
+ml_model/model.pkl
+
+# Logs
+*.log
+app.log
+
+# OS files
+.DS_Store
+Thumbs.db
