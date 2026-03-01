@@ -10,29 +10,34 @@ import os
 import logging
 from flask import Flask, g, jsonify, render_template, request, abort, session
 from sqlalchemy import create_engine
+from dotenv import load_dotenv
 import requests
 
+# Load environment variables from .env file
+load_dotenv()
+
 # -------------------------------------------------------
-# App Setup (from 1__basic2.py)
+# App Setup
 # static_url_path='' means static files are served from /static folder
 # -------------------------------------------------------
 app = Flask(__name__, static_url_path='')
 
-# Secret key for sessions (from 13__secret_key.py)
-app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'd5ac188faa9eb221139d1e3b07f69a21978a2c94f3520161bf8d3f4872852a4e')
+# Secret key for sessions - loaded from .env
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
 # Logging setup
 logging.basicConfig(filename='app.log', level=logging.INFO)
 
 
 # -------------------------------------------------------
-# Database Configuration (from 8__flask-connection-to-db.py & 9__connection_complex.py)
+# Database Configuration
+# All values loaded from .env file - never hardcoded
 # -------------------------------------------------------
-DB_USER     = "root"
-DB_PASSWORD = "MbArsenal44"       # TODO: replaced--
-DB_PORT     = "3306"
-DB_NAME     = "dublinbikes-db"  # TODO: replaced--
-DB_HOST     = "127.0.0.1"
+DB_USER     = os.getenv('DB_USER', 'root')
+DB_PASSWORD = os.getenv('DB_PASSWORD')
+DB_PORT     = os.getenv('DB_PORT', '3306')
+DB_NAME     = os.getenv('DB_NAME')
+DB_HOST     = os.getenv('DB_HOST', '127.0.0.1')
 
 def connect_to_db():
     connection_string = "mysql+pymysql://{}:{}@{}:{}/{}".format(
@@ -50,12 +55,13 @@ def get_db():
 
 
 # -------------------------------------------------------
-# Live API Configuration (from 9_1_get_currrent_data.py)
+# Live API Configuration
+# All keys loaded from .env file - never hardcoded
 # -------------------------------------------------------
-JCDECAUX_API_KEY      = os.getenv('JCDECAUX_API_KEY', '9ba379feaef0ee113d0fffac70c29a1804bcde56')   # TODO: replaced--
-OPENWEATHER_API_KEY   = os.getenv('OPENWEATHER_API_KEY', '1444bd9e66875a953d0b2409c58241a1') # TODO: replaced--
-CITY_NAME             = "Dublin"
-CONTRACT_NAME         = "dublin"
+JCDECAUX_API_KEY    = os.getenv('JCDECAUX_API_KEY')
+OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
+CITY_NAME           = "Dublin"
+CONTRACT_NAME       = "dublin"
 
 def get_bike_data():
     url = f"https://api.jcdecaux.com/vls/v1/stations?contract={CONTRACT_NAME}&apiKey={JCDECAUX_API_KEY}"
@@ -69,7 +75,7 @@ def get_weather():
 
 
 # -------------------------------------------------------
-# Page Routes (from 1__basic2.py, 2__basic2.py, 3__basic3.py)
+# Page Routes
 # -------------------------------------------------------
 
 @app.route('/')
@@ -79,7 +85,7 @@ def root():
 
 
 # -------------------------------------------------------
-# API Routes - DB Data (from 8__flask-connection-to-db.py & 9__connection_complex.py)
+# API Routes - DB Data
 # -------------------------------------------------------
 
 @app.route('/api/stations')
@@ -104,13 +110,13 @@ def get_availability(station_id):
         data.append(dict(row))
 
     if not data:
-        abort(404)  # from 14__abort.py - station not found
+        abort(404)
 
     return jsonify(available=data)
 
 
 # -------------------------------------------------------
-# API Routes - Live Data (from 9_1_get_currrent_data.py)
+# API Routes - Live Data
 # -------------------------------------------------------
 
 @app.route('/api/bikes/live')
@@ -130,7 +136,7 @@ def live_weather():
 
 @app.route('/api/predict/<int:station_id>')
 def predict(station_id):
-    """Return bike availability prediction for a station. Placeholder for ML model."""
+    """Return bike availability prediction for a station."""
     # TODO: Load your trained ML model and return a prediction
     return jsonify({
         "station_id": station_id,
@@ -139,7 +145,7 @@ def predict(station_id):
 
 
 # -------------------------------------------------------
-# Error Handlers (from 14__abort.py)
+# Error Handlers
 # -------------------------------------------------------
 
 @app.errorhandler(404)
