@@ -139,15 +139,22 @@ function showStationInfo(marker, station) {
   const address = station.address || "";
 
   const html = `
-    <div style="min-width:220px">
-      <strong>${name}</strong><br/>
-      ${address ? `${address}<br/>` : ""}
-      <div><strong>Status:</strong> ${status}</div>
-      <div><strong>Bikes:</strong> ${bikes ?? "?"}</div>
-      <div><strong>Stands:</strong> ${stands ?? "?"}</div>
-      <div style="font-size:12px; opacity:0.8"><strong>Updated:</strong> ${lastUpdate}</div>
+  <div>
+    <div style="font-weight:800; font-size:15px; margin-bottom:6px;">
+      ${name}
     </div>
-  `;
+    ${address ? `<div style="color:#6b7280; margin-bottom:10px;">${address}</div>` : ""}
+
+    <div class="kv">
+      <div class="k">Status</div><div class="v">${status}</div>
+      <div class="k">Bikes</div><div class="v">${bikes ?? "?"}</div>
+      <div class="k">Stands</div><div class="v">${stands ?? "?"}</div>
+      <div class="k">Capacity</div><div class="v">${station.bike_stands ?? "?"}</div>
+    </div>
+
+    <div class="mini"><strong>Updated:</strong> ${lastUpdate}</div>
+  </div>
+` ;
 
   infoWindow.setContent(html);
   infoWindow.open(map, marker);

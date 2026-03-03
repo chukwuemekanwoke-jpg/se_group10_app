@@ -8,11 +8,34 @@
 <body>
     <div class="layout">
         <div id="sidebar">
-            <h2>Station Info</h2>
-            <div id="stationDetails">Click a station...</div>
+          <div class="sidebar-header">
+            <div class="brand">
+              <div class="brand-badge">DB</div>
+              <div class="brand-title">
+                <strong>Dublin Bikes</strong>
+                <span>Live stations & weather</span>
+              </div>
+            </div>
+          </div>
 
+          <div class="card">
+            <h2>Station</h2>
+            <div id="stationDetails" class="card-body">
+              <div class="skeleton" style="width: 70%"></div>
+              <div class="skeleton" style="width: 90%"></div>
+              <div class="skeleton" style="width: 55%"></div>
+            </div>
+          </div>
+
+          <div class="card">
             <h2>Weather</h2>
-            <div id="weatherDetails">Loading...</div>
+            <div id="weatherDetails" class="card-body">
+              <div class="skeleton" style="width: 60%"></div>
+              <div class="skeleton" style="width: 80%"></div>
+              <div class="skeleton" style="width: 50%"></div>
+            </div>
+          </div>
+          
         </div>
 
         <div id="map"></div>
