@@ -8,11 +8,38 @@
 <body>
     <div class="layout">
         <div id="sidebar">
-            <h2>Station Info</h2>
-            <div id="stationDetails">Click a station...</div>
+            <div class="sidebar-header">
+                <h1>UniBikes</h1>
+                <button id="refreshBtn" type="button">Refresh</button>
+            </div>
 
-            <h2>Weather</h2>
-            <div id="weatherDetails">Loading...</div>
+            <section class="panel">
+                <h2>Nearby Station Finder</h2>
+
+                <button id="locateBtn" type="button">Use my location</button>
+
+                <label for="radiusSelect">Radius</label>
+                <select id="radiusSelect">
+                    <option value="500">500 m</option>
+                    <option value="800" selected>800 m</option>
+                    <option value="1000">1000 m</option>
+                    <option value="1500">1500 m</option>
+                </select>
+
+                <button id="findRouteBtn" type="button">Find nearest station</button>
+
+                <div id="routeResult">No recommendation yet.</div>
+            </section>
+
+            <section class="panel">
+                <h2>Station Info</h2>
+                <div id="stationDetails">Click a station...</div>
+            </section>
+
+            <section class="panel">
+                <h2>Weather</h2>
+                <div id="weatherDetails">Loading...</div>
+            </section>
         </div>
 
         <div id="map"></div>
