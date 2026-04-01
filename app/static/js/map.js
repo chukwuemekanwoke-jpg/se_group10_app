@@ -21,7 +21,7 @@ function initMap() {
   loadStationsAndAvailability();
   loadWeather();
 
-  setInterval(loadWeather, 10 * 60 * 1000); // refresh weather every 10 minutes
+  setInterval(loadWeather, 10 * 60 * 1000);
 }
 
 // Ensure Google callback can see initMap
@@ -33,6 +33,7 @@ function wireUiActions() {
     refreshBtn.addEventListener("click", async () => {
       refreshBtn.disabled = true;
       refreshBtn.textContent = "Refreshing...";
+
       try {
         await Promise.all([loadStationsAndAvailability(), loadWeather()]);
       } finally {
@@ -71,7 +72,7 @@ async function loadStationsAndAvailability() {
       latestByNumber.set(row.number, row);
     }
 
-    const merged = stations.map((s) => {
+    mergedStations = stations.map((s) => {
       const stationNumber = s.number;
       return {
         ...s,
@@ -79,7 +80,6 @@ async function loadStationsAndAvailability() {
       };
     });
 
-    mergedStations = merged;
     renderMarkers(mergedStations);
   } catch (err) {
     console.error(err);
@@ -105,8 +105,8 @@ function renderMarkers(stations) {
     const bikes = s.latest?.available_bikes;
     const stands = s.latest?.available_bike_stands;
     const status = s.latest?.status;
-
     const capacity = s.bike_stands;
+
     const { icon } = computeMarkerStyle(bikes, stands, capacity, status);
 
     const marker = new google.maps.Marker({
@@ -169,13 +169,20 @@ function showStationInfo(marker, station) {
   const address = station.address || "";
 
   const html = `
-    <div style="min-width:220px">
-      <strong>${name}</strong><br/>
-      ${address ? `${address}<br/>` : ""}
-      <div><strong>Status:</strong> ${status}</div>
-      <div><strong>Bikes:</strong> ${bikes ?? "?"}</div>
-      <div><strong>Stands:</strong> ${stands ?? "?"}</div>
-      <div style="font-size:12px; opacity:0.8"><strong>Updated:</strong> ${lastUpdate}</div>
+    <div>
+      <div style="font-weight:800; font-size:15px; margin-bottom:6px;">
+        ${name}
+      </div>
+      ${address ? `<div style="color:#6b7280; margin-bottom:10px;">${address}</div>` : ""}
+
+      <div class="kv">
+        <div class="k">Status</div><div class="v">${status}</div>
+        <div class="k">Bikes</div><div class="v">${bikes ?? "?"}</div>
+        <div class="k">Stands</div><div class="v">${stands ?? "?"}</div>
+        <div class="k">Capacity</div><div class="v">${station.bike_stands ?? "?"}</div>
+      </div>
+
+      <div class="mini"><strong>Updated:</strong> ${lastUpdate}</div>
     </div>
   `;
 
@@ -375,7 +382,7 @@ function findNearestStation() {
 
   if (resultPanel) {
     resultPanel.innerHTML = `
-      ${usedFallback ? `<div style="margin-bottom:8px; color:#7c2d12; font-weight:700;">No suitable station within ${radius} m. Showing nearest available station instead.</div>` : ""}
+      ${usedFallback ? `<div style="margin-bottom:8px; color:#92400e; font-weight:700;">No suitable station within ${radius} m. Showing nearest available station instead.</div>` : ""}
       <strong>Recommended station:</strong><br/>
       ${best.name || `Station ${best.number}`}<br/>
       ${best.address || ""}<br/><br/>
