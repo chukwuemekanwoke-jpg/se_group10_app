@@ -2,6 +2,8 @@
 ## Flask App Installation
 ## Project Structure
 
+The main branch is simply for production only files.
+
 ```
 dublinbikes/
 │
