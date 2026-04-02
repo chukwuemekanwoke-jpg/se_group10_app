@@ -389,7 +389,7 @@ function findNearestStation() {
       <strong>Distance:</strong> ${Math.round(best._distance)} m<br/>
       <strong>Available bikes:</strong> ${best.latest?.available_bikes ?? "?"}<br/>
       <strong>Free stands:</strong> ${best.latest?.available_bike_stands ?? "?"}<br/><br/>
-      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+      <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer" class="action-btn maps-btn">Open in Google Maps</a>
     `;
   }
 

@@ -166,6 +166,19 @@ label + select{
   flex-shrink: 0;
 }
 
+.maps-btn{
+  display: block;
+  text-align: center;
+  margin-top: 10px;
+  text-decoration: none;
+  background: #2563eb; /* subtle blue */
+  box-shadow: 0 6px 16px rgba(37,99,235,.18);
+}
+
+.maps-btn:hover{
+  background: #1d4ed8;
+}
+
 .route-result{
   margin-top: 12px;
   border: 1px dashed var(--border);
