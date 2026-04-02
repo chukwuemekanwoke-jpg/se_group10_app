@@ -1,51 +1,25 @@
-# Dublin Bikes Web App - COMP30830
-## Flask App Installation
-## Project Structure
+# Clone the repo (defaults to develop)
+git clone https://github.com/chukwuemekanwoke-jpg/se_group10_app.git
+cd se_group10_app
 
-The main branch is simply for production only files.
+# Create a feature
+git checkout -b feature/login-authentication
+# ... make changes ...
+git add .
+git commit -m "feat: add login system"
+git push -u origin feature/login-authentication
 
-```
-dublinbikes/
-│
-├── app.py                  ← MAIN FILE - Run this to start the Flask server
-├── requirements.txt        ← Python packages needed (install with pip)
-├── .gitignore              ← Files to NOT upload to GitHub (keys, passwords)
-│
-├── static/                 ← Frontend files (served directly to browser)
-│   ├── index.html          ← Main HTML page
-│   ├── css/
-│   │   └── style.css       ← Styles
-│   └── js/
-│       └── main.js         ← JavaScript (map, charts, API calls)
-│
-├── ml_model/               ← Machine Learning files
-│   ├── train_model.py      ← Script to train and save the model
-│   └── model.pkl           ← Saved trained model (generated after training)
-│
-└── data/                   ← Historical data files (CSV/JSON if not using DB)
-    └── historical.csv      ← Example historical data file
-```
+# Create Peer Review on GitHub → Get approved → Merge to develop
 
-## How to Run Locally
+# Deploy to staging for testing
+git checkout staging
+git pull origin staging
+git merge develop
+git push origin staging
 
-```bash
-pip install -r requirements.txt
-python app.py
-```
-Then open: http://127.0.0.1:5000
-
-## How to Run on EC2
-
-```bash
-python app.py
-```
-Then open: http://<your-EC2-public-IP>:5000
-
-## Environment Variables
-
-Set these in your terminal before running:
-```bash
-export SECRET_KEY="your_secret_key"
-export JCDECAUX_API_KEY="your_jcdecaux_key"
-export OPENWEATHER_API_KEY="your_openweather_key"
-```
+# After testing, release to production
+git checkout main
+git pull origin main
+git merge staging
+git tag v1.1
+git push origin main --tags
