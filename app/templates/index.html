@@ -1,1 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troithean - Dublin Bikes</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+    <header class="site-header">
+        <div class="header-left">
+            <h1 class="site-title">Troithean</h1>
+            <p class="site-subtitle">Dublin Bikes Live Map and Predictions</p>
+        </div>
 
+        <nav class="site-nav">
+            <a href="{{ url_for('main.index_page') }}">Home</a>
+            <a href="{{ url_for('main.index_page') }}">Map</a>
+
+            {% if logged_in %}
+                <span class="nav-user">Welcome, {{ user_name }}</span>
+                <a href="{{ url_for('main.subscription_page') }}">Subscriptions</a>
+                <a href="{{ url_for('main.logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('main.login_page') }}">Login</a>
+                <a href="{{ url_for('main.register_page') }}">Register</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main class="main-content">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <section class="flash-container">
+                    {% for category, message in messages %}
+                        <p class="flash-message {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                </section>
+            {% endif %}
+        {% endwith %}
+
+        <section class="hero-section">
+            <h2>Explore Dublin Bikes in Real Time</h2>
+            <p>
+                View station availability, track live weather, and access prediction features
+                for bike usage across Dublin.
+            </p>
+        </section>
+
+        <section class="map-section">
+            <div id="map" style="width: 100%; height: 500px;"></div>
+        </section>
+    </main>
+
+    <script>
+        const GOOGLE_MAPS_API_KEY = "{{ apikey }}";
+    </script>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+    <script async defer src="https://maps.googleapis.com/maps/api/js?key={{ apikey }}&callback=initMap"></script>
+</body>
+</html>
