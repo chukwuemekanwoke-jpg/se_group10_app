@@ -28,9 +28,10 @@ from flask import (
     flash
 )
 from sqlalchemy import create_engine, text
-from werkzeug.security import check_password_hash
 from werkzeug.exceptions import HTTPException
 from dotenv import load_dotenv
+
+from services.auth_service import authenticate_user
 
 # Load environment variables from .env
 load_dotenv()
@@ -40,11 +41,11 @@ load_dotenv()
 # -------------------------------------------------------
 app = Flask(__name__)
 
-SECRET_KEY = os.getenv('SECRET_KEY')
+SECRET_KEY = os.getenv("SECRET_KEY")
 if not SECRET_KEY:
     raise RuntimeError("Missing required environment variable: SECRET_KEY")
 
-app.config['SECRET_KEY'] = SECRET_KEY
+app.config["SECRET_KEY"] = SECRET_KEY
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -52,11 +53,11 @@ logger = logging.getLogger(__name__)
 # -------------------------------------------------------
 # RDS Database Configuration
 # -------------------------------------------------------
-DB_USER = os.getenv('DB_USER')
-DB_PASSWORD = os.getenv('DB_PASSWORD')
-DB_PORT = os.getenv('DB_PORT', '3306')
-DB_NAME = os.getenv('DB_NAME')
-DB_HOST = os.getenv('DB_HOST')
+DB_USER = os.getenv("DB_USER")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
+DB_PORT = os.getenv("DB_PORT", "3306")
+DB_NAME = os.getenv("DB_NAME")
+DB_HOST = os.getenv("DB_HOST")
 
 required_db_vars = {
     "DB_USER": DB_USER,
@@ -81,9 +82,9 @@ engine = create_engine(
 # -------------------------------------------------------
 # External API Keys
 # -------------------------------------------------------
-JCDECAUX_API_KEY = os.getenv('JCDECAUX_API_KEY')
-OPENWEATHER_API_KEY = os.getenv('OPENWEATHER_API_KEY')
-GOOGLE_MAPS_API_KEY = os.getenv('GOOGLE_MAPS_API_KEY')
+JCDECAUX_API_KEY = os.getenv("JCDECAUX_API_KEY")
+OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
+GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
 
 # -------------------------------------------------------
 # Helper Functions
@@ -103,6 +104,7 @@ def get_bike_data():
         logger.error("JCDecaux API Error: %s", e)
         return []
 
+
 def get_weather():
     """Fetch current Dublin weather from OpenWeather API."""
     if not OPENWEATHER_API_KEY:
@@ -118,84 +120,75 @@ def get_weather():
         logger.error("Weather API Error: %s", e)
         return {}
 
+
 def is_logged_in():
     """Check whether a user is currently logged in."""
-    return 'user_id' in session
+    return "user_id" in session
+
 
 # -------------------------------------------------------
 # Frontend Page Routes
 # -------------------------------------------------------
-@app.route('/')
+@app.route("/")
 def root():
     """Render the main homepage/map page."""
     return render_template(
-        'index.html',
+        "index.html",
         google_maps_api_key=GOOGLE_MAPS_API_KEY,
-        user_name=session.get('user_name')
+        user_name=session.get("user_name")
     )
 
-@app.route('/login', methods=['GET', 'POST'])
+
+@app.route("/login", methods=["GET", "POST"])
 def login_page():
     """
     Render login page on GET.
-    Handle real login submission on POST using MySQL users table.
+    Handle real login submission on POST using auth_service.
     """
-    if request.method == 'POST':
-        email = request.form.get('email', '').strip().lower()
-        password = request.form.get('password', '').strip()
+    if request.method == "POST":
+        email = request.form.get("email", "").strip().lower()
+        password = request.form.get("password", "").strip()
 
         if not email or not password:
-            flash('Please enter both email and password.', 'error')
-            return redirect(url_for('login_page'))
+            flash("Please enter both email and password.", "error")
+            return redirect(url_for("login_page"))
 
         try:
-            with engine.connect() as connection:
-                query = text("""
-                    SELECT id, first_name, last_name, email, password_hash
-                    FROM users
-                    WHERE email = :email
-                    LIMIT 1
-                """)
-                result = connection.execute(query, {"email": email}).fetchone()
+            user = authenticate_user(engine, email, password)
 
-            if result is None:
-                flash('Invalid email or password.', 'error')
-                return redirect(url_for('login_page'))
+            if user is None:
+                flash("Invalid email or password.", "error")
+                return redirect(url_for("login_page"))
 
-            user = dict(result._mapping)
+            session["user_id"] = user["id"]
+            session["user_email"] = user["email"]
+            session["user_name"] = user["first_name"]
 
-            if not check_password_hash(user['password_hash'], password):
-                flash('Invalid email or password.', 'error')
-                return redirect(url_for('login_page'))
-
-            session['user_id'] = user['id']
-            session['user_email'] = user['email']
-            session['user_name'] = user['first_name']
-
-            flash(f"Welcome back, {user['first_name']}!", 'success')
-            return redirect(url_for('root'))
+            flash(f"Welcome back, {user['first_name']}!", "success")
+            return redirect(url_for("root"))
 
         except Exception as e:
             logger.error("Login error: %s", e)
-            flash('An internal error occurred. Please try again later.', 'error')
-            return redirect(url_for('login_page'))
+            flash("An internal error occurred. Please try again later.", "error")
+            return redirect(url_for("login_page"))
 
-    return render_template('login.html')
+    return render_template("login.html")
 
-@app.route('/subscription', methods=['GET', 'POST'])
+
+@app.route("/subscription", methods=["GET", "POST"])
 def subscription_page():
     """
     Render subscription settings page on GET.
     Save subscription preferences to the logged-in user's record on POST.
     """
     if not is_logged_in():
-        flash('Please log in to access your subscription settings.', 'error')
-        return redirect(url_for('login_page'))
+        flash("Please log in to access your subscription settings.", "error")
+        return redirect(url_for("login_page"))
 
-    if request.method == 'POST':
-        email_notifications = bool(request.form.get('email_notifications'))
-        weather_alerts = bool(request.form.get('weather_alerts'))
-        prediction_updates = bool(request.form.get('prediction_updates'))
+    if request.method == "POST":
+        email_notifications = bool(request.form.get("email_notifications"))
+        weather_alerts = bool(request.form.get("weather_alerts"))
+        prediction_updates = bool(request.form.get("prediction_updates"))
 
         try:
             with engine.begin() as connection:
@@ -210,51 +203,55 @@ def subscription_page():
                     "email_notifications": email_notifications,
                     "weather_alerts": weather_alerts,
                     "prediction_updates": prediction_updates,
-                    "user_id": session['user_id']
+                    "user_id": session["user_id"]
                 })
 
             logger.info(
                 "Subscription update saved for user_id=%s: email_notifications=%s, weather_alerts=%s, prediction_updates=%s",
-                session['user_id'],
+                session["user_id"],
                 email_notifications,
                 weather_alerts,
                 prediction_updates
             )
 
-            flash('Subscription preferences saved successfully.', 'success')
-            return redirect(url_for('subscription_page'))
+            flash("Subscription preferences saved successfully.", "success")
+            return redirect(url_for("subscription_page"))
 
         except Exception as e:
             logger.error("Subscription update error: %s", e)
-            flash('Could not save subscription preferences.', 'error')
-            return redirect(url_for('subscription_page'))
+            flash("Could not save subscription preferences.", "error")
+            return redirect(url_for("subscription_page"))
 
-    return render_template('subscription.html')
+    return render_template("subscription.html")
 
-@app.route('/logout')
+
+@app.route("/logout")
 def logout():
     """Clear the current user session."""
     session.clear()
-    flash('You have been logged out.', 'success')
-    return redirect(url_for('root'))
+    flash("You have been logged out.", "success")
+    return redirect(url_for("root"))
+
 
 # -------------------------------------------------------
 # Authentication API Routes
 # -------------------------------------------------------
-@app.route('/api/register', methods=['POST'])
+@app.route("/api/register", methods=["POST"])
 def register():
     """Placeholder for user registration logic."""
     return jsonify({"message": "Registration logic placeholder"})
 
-@app.route('/api/login', methods=['POST'])
+
+@app.route("/api/login", methods=["POST"])
 def login_api():
     """Placeholder for API-based login logic."""
     return jsonify({"message": "Login API placeholder"})
 
+
 # -------------------------------------------------------
 # ML Prediction Route (Placeholder)
 # -------------------------------------------------------
-@app.route('/api/predict/<int:station_id>')
+@app.route("/api/predict/<int:station_id>")
 def predict(station_id):
     """Placeholder for ML model inference."""
     return jsonify({
@@ -262,18 +259,17 @@ def predict(station_id):
         "predicted_bikes": "ML model logic placeholder"
     })
 
+
 # -------------------------------------------------------
 # RDS API Routes
 # -------------------------------------------------------
-@app.route('/api/stations')
+@app.route("/api/stations")
 def get_stations():
     """Fetch all station records from the database."""
     stations = []
     try:
         with engine.connect() as connection:
-            result = connection.execute(text("""
-                SELECT * FROM station;
-            """))
+            result = connection.execute(text("SELECT * FROM station;"))
             for row in result:
                 stations.append(dict(row._mapping))
         return jsonify(stations=stations)
@@ -281,7 +277,8 @@ def get_stations():
         logger.error("RDS Fetch Error: %s", e)
         abort(500)
 
-@app.route('/api/availability/<int:station_id>')
+
+@app.route("/api/availability/<int:station_id>")
 def get_availability(station_id):
     """Fetch recent availability history for a station."""
     data = []
@@ -310,39 +307,45 @@ def get_availability(station_id):
         logger.error("RDS Query Error: %s", e)
         abort(500)
 
+
 # -------------------------------------------------------
 # Live External API Routes
 # -------------------------------------------------------
-@app.route('/api/bikes/live')
+@app.route("/api/bikes/live")
 def live_bikes():
     """Return live bike station data from JCDecaux."""
     return jsonify(get_bike_data())
 
-@app.route('/api/weather')
+
+@app.route("/api/weather")
 def live_weather():
     """Return live weather data from OpenWeather."""
     return jsonify(get_weather())
+
 
 # -------------------------------------------------------
 # Error Handlers
 # -------------------------------------------------------
 @app.errorhandler(404)
 def not_found(e):
-    if request.path.startswith('/api/'):
+    if request.path.startswith("/api/"):
         return jsonify(error="Resource not found"), 404
-    return render_template("404.html"), 404 if os.path.exists("templates/404.html") else ("Page not found", 404)
+    return "Page not found", 404
+
 
 @app.errorhandler(403)
 def forbidden(e):
-    if request.path.startswith('/api/'):
+    if request.path.startswith("/api/"):
         return jsonify(error="Access denied"), 403
-    return render_template("403.html"), 403 if os.path.exists("templates/403.html") else ("Access denied", 403)
+    return "Access denied", 403
+
 
 @app.errorhandler(500)
 def internal_error(e):
-    if request.path.startswith('/api/'):
+    if request.path.startswith("/api/"):
         return jsonify(error="Internal server error"), 500
-    return render_template("500.html"), 500 if os.path.exists("templates/500.html") else ("Internal server error", 500)
+    return "Internal server error", 500
+
 
 # -------------------------------------------------------
 # Run App
