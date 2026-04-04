@@ -1,1 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Subscription Settings - Troithean</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+    <div class="login-page">
+        <div class="login-card">
+            <div class="login-header">
+                <h1>Subscription Settings</h1>
+                <p>Manage your notification preferences</p>
+            </div>
 
+            {% if logged_in %}
+                <p class="flash-message success">
+                    Signed in as {{ user_name }}.
+                    <a href="{{ url_for('main.logout') }}">Log out</a>
+                </p>
+            {% endif %}
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="flash-message {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form class="login-form" method="POST" action="{{ url_for('main.subscription_page') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+
+                <div class="form-group">
+                    <label>
+                        <input
+                            type="checkbox"
+                            name="email_notifications"
+                            {% if preferences and preferences.email_notifications %}checked{% endif %}
+                        >
+                        Enable email notifications
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input
+                            type="checkbox"
+                            name="weather_alerts"
+                            {% if preferences and preferences.weather_alerts %}checked{% endif %}
+                        >
+                        Enable weather alerts
+                    </label>
+                </div>
+
+                <div class="form-group">
+                    <label>
+                        <input
+                            type="checkbox"
+                            name="prediction_updates"
+                            {% if preferences and preferences.prediction_updates %}checked{% endif %}
+                        >
+                        Enable bike prediction updates
+                    </label>
+                </div>
+
+                <button type="submit" class="login-btn">Save Preferences</button>
+            </form>
+
+            <div class="login-footer">
+                <p><a href="{{ url_for('main.index_page') }}">Back to home</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
