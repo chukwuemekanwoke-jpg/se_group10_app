@@ -1,5 +1,4 @@
 # Dublin Bikes Web App - COMP30830
-## Project Structure
 
 A Flask-based web application for visualising and interacting with Dublin Bikes data. The app integrates live bike station information, weather data, and machine learning functionality to support analysis and prediction features.
 
@@ -15,13 +14,7 @@ The application includes:
 4. Integration with the OpenWeather API for weather data
 5. A machine learning component for predictions based on historical datasets
 6. Deployment on AWS EC2
-7. A MySQL Database hosted on AWS RDS
-
-The main branch is simply for production only files. It contains only:
-1. stable, production-ready code
-2. deployment-safe code
-3. finished features
-4. polished README/docs meant for final use.
+7. Data storage through MySQL Database hosted on AWS RDS
 
 ##Features
 1. Display Dublin Bikes station information
@@ -32,6 +25,50 @@ The main branch is simply for production only files. It contains only:
 6. Support machine learning workflows using historical data
 7. Deploy in a cloud-based environment using AWS EC2
 
+The main branch is simply for production only files. It contains only:
+1. stable, production-ready code
+2. deployment-safe code
+3. finished features
+4. polished README/docs meant for final use.
+
+## Branching Strategy
+This repository uses a simple two-branch workflow.
+
+### 'main'
+The 'main' branch contains the **production-read version** of the application. Only stable, tested and deployment-ready code should be merged into this branch.
+
+### 'develop'
+The 'develop' branch contains the **active development version** of the application. This is where feature implementation, integration work, testing and improvements are carried out before being promoted to 'main'.
+
+## Development Workflow
+This project uses a lightweight workflow suitable for a small application.
+
+### Workflow Summary
+1. New features and updates are added to 'develop'
+2. Features are tested and redefined in 'develop'
+3. Stable changes are merged into 'main'
+4. 'main' is maintained as the final production-ready branch
+
+### What belongs in 'main'
+The 'main' branch contains:
+- stable and reviewed code only
+- completed features that are ready for release
+- production-ready configuration
+- finalised documentation
+
+
+### What belongs in 'develop'
+The 'develop' branch contains all major working features, including:
+- authentication functionality
+- bike station dashboard
+- map and station marker logic
+- weather integration
+- database connectivity
+- machine learning and prediction features
+- frontend improvements and interface updates
+
+
+## Project Structure
 ```
 se_group10_app/
 │
@@ -64,7 +101,7 @@ se_group10_app/
 5. AWS RDS
 6. JCDecaux API
 7. OpenWeather API
-8. Machine Learning tools (depending on packages in requirements.txt)
+8. Machine Learning tools (packages in requirements.txt)
 
 ## Requirements
 Before running the applicaiton, ensure you have;
