@@ -5,9 +5,14 @@ from app.db import get_db
 
 
 @main_bp.route("/")
+def home():
+    return redirect(url_for("main.login_page"))
+
+
+@main_bp.route("/index")
 @main_bp.route("/map")
-def map_page():
-    return render_template("map.html", apikey=current_app.config["GOOGLE_MAPS_API_KEY"])
+def index_page():
+    return render_template("index.html", apikey=current_app.config["GOOGLE_MAPS_API_KEY"])
 
 
 @main_bp.route("/login", methods=["GET", "POST"])
@@ -31,12 +36,16 @@ def login_page():
         user = cur.fetchone()
         cur.close()
 
-        if not user or not check_password_hash(user["password_hash"], password):
+        if not user:
+            flash("User not found. Please register first.", "error")
+            return redirect(url_for("main.register_page"))
+
+        if not check_password_hash(user["password_hash"], password):
             flash("Invalid email or password.", "error")
             return render_template("login.html")
 
         flash("Login successful.", "success")
-        return redirect(url_for("main.map_page"))
+        return redirect(url_for("main.index_page"))
 
     return render_template("login.html")
 
