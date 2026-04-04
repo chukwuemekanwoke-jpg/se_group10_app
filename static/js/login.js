@@ -2,11 +2,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("loginForm");
     const message = document.getElementById("loginMessage");
 
-    if (!form) return;
+    if (!form || !message) return;
 
     form.addEventListener("submit", (event) => {
-        event.preventDefault();
-
         const email = document.getElementById("email").value.trim();
         const password = document.getElementById("password").value.trim();
 
@@ -14,25 +12,18 @@ document.addEventListener("DOMContentLoaded", () => {
         message.style.color = "#ff8a8a";
 
         if (!email || !password) {
+            event.preventDefault();
             message.textContent = "Please enter both email and password.";
             return;
         }
 
         if (!isValidEmail(email)) {
+            event.preventDefault();
             message.textContent = "Please enter a valid email address.";
             return;
         }
 
-        message.style.color = "#9be39b";
-        message.textContent = "Login form submitted successfully.";
-
-        // Later you can replace this with a real fetch('/login', ...)
-        // Example:
-        // form.submit();
-
-        setTimeout(() => {
-            window.location.href = "/";
-        }, 800);
+        // If validation passes, allow normal form submission to Flask
     });
 
     function isValidEmail(email) {
