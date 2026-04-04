@@ -1,14 +1,10 @@
 * {
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
 }
 
 body {
+    margin: 0;
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #1b2735, #090a0f);
-    color: #ffffff;
-    min-height: 100vh;
 }
 
 .login-page {
@@ -17,6 +13,7 @@ body {
     align-items: center;
     justify-content: center;
     padding: 2rem;
+    background: linear-gradient(135deg, #1b2735, #090a0f);
 }
 
 .login-card {
@@ -28,6 +25,7 @@ body {
     padding: 2rem;
     backdrop-filter: blur(10px);
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+    color: #ffffff;
 }
 
 .login-header {
@@ -36,12 +34,13 @@ body {
 }
 
 .login-header h1 {
+    margin: 0 0 0.5rem;
     font-size: 2rem;
-    margin-bottom: 0.5rem;
     color: #ffffff;
 }
 
 .login-header p {
+    margin: 0;
     font-size: 0.95rem;
     color: #d6d6d6;
 }
@@ -89,8 +88,8 @@ body {
 }
 
 .form-group input[type="checkbox"] {
-    margin-right: 0.55rem;
-    transform: scale(1.1);
+    margin-right: 0.5rem;
+    transform: scale(1.05);
 }
 
 .login-btn {
@@ -123,8 +122,8 @@ body {
 
 .login-footer p {
     margin-bottom: 0.65rem;
-    font-size: 0.95rem;
     color: #d6d6d6;
+    font-size: 0.95rem;
 }
 
 .login-footer a {
@@ -173,7 +172,47 @@ body {
     color: #ff9e9e;
 }
 
+.checkbox-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    color: #e2e8f0;
+    font-size: 0.95rem;
+}
+
+.checkbox-row label {
+    margin: 0;
+    color: #e2e8f0;
+    font-weight: 500;
+}
+
+.subscription-options {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.subscription-option {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 1rem;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #f2f2f2;
+}
+
+.subscription-option input[type="checkbox"] {
+    width: auto;
+    margin: 0;
+}
+
 @media (max-width: 600px) {
+    .login-page {
+        padding: 1.25rem;
+    }
+
     .login-card {
         padding: 1.5rem;
         border-radius: 14px;
