@@ -36,24 +36,46 @@ The develop branch is simply the branch where all active code and features live.
 ```
 se_group10_app/
 │
-├── app.py                  # Main Flask application entry point
-├── requirements.txt        # Python dependencies
-├── .gitignore              # Git ignore rules
-├── .env                    # Environment variables (not committed)
+├── app.py
+├── requirements.txt
+├── .gitignore
+├── .env.example
 │
-├── static/                 # Frontend assets
-│   ├── index.html          # Main webpage
+├── static/
+│   ├── index.html                  # Main bike sharing page
 │   ├── css/
-│   │   └── style.css       # Stylesheet
+│   │   └── style.css               # Shared styles
 │   └── js/
-│       └── main.js         # Frontend logic (maps, charts, API calls)
+│       ├── main.js                 # General frontend logic
+│       ├── auth.js                 # Authentication logic
+│       ├── map.js                  # Map and station marker logic
+│       ├── weather.js              # Weather display logic
+│       ├── charts.js               # Chart/analytics logic
+│       └── prediction.js           # ML prediction UI logic
 │
-├── ml_model/               # Machine learning files
-│   ├── train_model.py      # Model training script
-│   └── model.pkl           # Saved trained model
+├── templates/                      # If Flask templating is used
+│   ├── login.html
+│   ├── register.html
+│   ├── dashboard.html
+│   └── base.html
 │
-└── data/                   # Historical data files
-    └── historical.csv      # Example dataset
+├── ml_model/
+│   ├── train_model.py
+│   └── model.pkl
+│
+├── data/
+│   └── historical.csv
+│
+├── services/
+│   ├── jcdecaux_service.py
+│   ├── weather_service.py
+│   ├── auth_service.py
+│   └── prediction_service.py
+│
+└── database/
+    ├── db.py
+    ├── models.py
+    └── queries.py
 ```
 
 
