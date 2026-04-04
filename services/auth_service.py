@@ -2,15 +2,16 @@
 services/auth_service.py
 
 Authentication service functions for:
-- looking up users by email
-- verifying password hashes
+- fetching users
+- verifying login credentials
 """
 
 from sqlalchemy import text
 from werkzeug.security import check_password_hash
+from database.db import engine
 
 
-def get_user_by_email(engine, email):
+def get_user_by_email(email):
     """
     Fetch a user by email from the users table.
     Returns a dict if found, otherwise None.
@@ -30,12 +31,12 @@ def get_user_by_email(engine, email):
     return dict(result._mapping)
 
 
-def authenticate_user(engine, email, password):
+def authenticate_user(email, password):
     """
     Authenticate a user by email and password.
     Returns the user dict if credentials are valid, otherwise None.
     """
-    user = get_user_by_email(engine, email)
+    user = get_user_by_email(email)
 
     if user is None:
         return None
