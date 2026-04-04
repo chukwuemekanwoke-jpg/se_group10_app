@@ -8,6 +8,7 @@ Handles:
 - RDS database routes
 - Live external API data
 - Authentication page routing
+- Subscription settings page
 - Placeholder authentication logic
 - Placeholder ML prediction
 """
@@ -118,6 +119,30 @@ def login_page():
         return redirect(url_for('login_page'))
 
     return render_template('login.html')
+
+@app.route('/subscription', methods=['GET', 'POST'])
+def subscription_page():
+    """
+    Render subscription settings page on GET.
+    Handle placeholder subscription preference save on POST.
+    """
+    if request.method == 'POST':
+        email_notifications = request.form.get('email_notifications')
+        weather_alerts = request.form.get('weather_alerts')
+        prediction_updates = request.form.get('prediction_updates')
+
+        # Placeholder save logic
+        logging.info(
+            "Subscription update received: email_notifications=%s, weather_alerts=%s, prediction_updates=%s",
+            bool(email_notifications),
+            bool(weather_alerts),
+            bool(prediction_updates)
+        )
+
+        flash('Subscription preferences saved successfully.', 'success')
+        return redirect(url_for('subscription_page'))
+
+    return render_template('subscription.html')
 
 @app.route('/logout')
 def logout():
