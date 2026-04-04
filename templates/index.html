@@ -1,1 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Troithean</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
 
+<body>
+    <div class="layout">
+        <div id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-badge">T</div>
+                    <div class="brand-title">
+                        <strong>Troithean</strong>
+                        <span>Dublin Bikes live stations, weather & route finder</span>
+                    </div>
+                </div>
+
+                <button id="refreshBtn" type="button" class="action-btn action-btn-inline">
+                    Refresh
+                </button>
+            </div>
+
+            <div class="card">
+                <h2>Welcome</h2>
+                <div class="card-body">
+                    <p>
+                        Welcome to <strong>Troithean</strong>, your Dublin Bikes web application for
+                        viewing live station data, weather updates, and nearby route suggestions.
+                    </p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Nearby Station Finder</h2>
+                <div class="card-body">
+                    <button id="locateBtn" type="button" class="action-btn">Use my location</button>
+
+                    <label for="radiusSelect">Radius</label>
+                    <select id="radiusSelect">
+                        <option value="500">500 m</option>
+                        <option value="800" selected>800 m</option>
+                        <option value="1000">1000 m</option>
+                        <option value="1500">1500 m</option>
+                    </select>
+
+                    <button id="findRouteBtn" type="button" class="action-btn">Find nearest station</button>
+
+                    <div id="routeResult" class="route-result">
+                        No recommendation yet.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Station</h2>
+                <div id="stationDetails" class="card-body">
+                    <div class="skeleton" style="width: 70%"></div>
+                    <div class="skeleton" style="width: 90%"></div>
+                    <div class="skeleton" style="width: 55%"></div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>Weather</h2>
+                <div id="weatherDetails" class="card-body">
+                    <div class="skeleton" style="width: 60%"></div>
+                    <div class="skeleton" style="width: 80%"></div>
+                    <div class="skeleton" style="width: 50%"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+
+    <!-- Google Maps API -->
+    <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
+</body>
+</html>
