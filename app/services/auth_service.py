@@ -8,7 +8,7 @@ Authentication service functions for:
 
 from sqlalchemy import text
 from werkzeug.security import check_password_hash
-from database.db import engine
+from app.db import engine
 
 
 def get_user_by_email(email):
