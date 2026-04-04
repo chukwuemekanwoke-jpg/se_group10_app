@@ -17,7 +17,11 @@ The application includes:
 6. Deployment on AWS EC2
 7. A MySQL Database hosted on AWS RDS
 
-The main branch is simply for production only files.
+The main branch is simply for production only files. It contains only:
+1. stable, production-ready code
+2. deployment-safe code
+3. finished features
+4. polished README/docs meant for final use.
 
 ##Features
 1. Display Dublin Bikes station information
