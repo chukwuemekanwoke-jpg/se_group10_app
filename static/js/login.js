@@ -31,7 +31,7 @@ document.addEventListener("DOMContentLoaded", () => {
         // form.submit();
 
         setTimeout(() => {
-            window.location.href = "/map";
+            window.location.href = "/";
         }, 800);
     });
 
