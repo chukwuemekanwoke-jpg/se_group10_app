@@ -32,36 +32,32 @@
             <form class="login-form" method="POST" action="{{ url_for('main.subscription_page') }}">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
 
-                <div class="form-group">
-                    <label>
+                <div class="subscription-options">
+                    <label class="subscription-option">
                         <input
                             type="checkbox"
                             name="email_notifications"
                             {% if preferences and preferences.email_notifications %}checked{% endif %}
                         >
-                        Enable email notifications
+                        <span>Enable email notifications</span>
                     </label>
-                </div>
 
-                <div class="form-group">
-                    <label>
+                    <label class="subscription-option">
                         <input
                             type="checkbox"
                             name="weather_alerts"
                             {% if preferences and preferences.weather_alerts %}checked{% endif %}
                         >
-                        Enable weather alerts
+                        <span>Enable weather alerts</span>
                     </label>
-                </div>
 
-                <div class="form-group">
-                    <label>
+                    <label class="subscription-option">
                         <input
                             type="checkbox"
                             name="prediction_updates"
                             {% if preferences and preferences.prediction_updates %}checked{% endif %}
                         >
-                        Enable bike prediction updates
+                        <span>Enable bike prediction updates</span>
                     </label>
                 </div>
 
