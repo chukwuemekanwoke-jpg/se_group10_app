@@ -27,10 +27,11 @@ from flask import (
     render_template,
     flash
 )
-from sqlalchemy import create_engine, text
+from sqlalchemy import text
 from werkzeug.exceptions import HTTPException
 from dotenv import load_dotenv
 
+from database.db import engine
 from services.auth_service import authenticate_user
 
 # Load environment variables from .env
@@ -49,35 +50,6 @@ app.config["SECRET_KEY"] = SECRET_KEY
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
-
-# -------------------------------------------------------
-# RDS Database Configuration
-# -------------------------------------------------------
-DB_USER = os.getenv("DB_USER")
-DB_PASSWORD = os.getenv("DB_PASSWORD")
-DB_PORT = os.getenv("DB_PORT", "3306")
-DB_NAME = os.getenv("DB_NAME")
-DB_HOST = os.getenv("DB_HOST")
-
-required_db_vars = {
-    "DB_USER": DB_USER,
-    "DB_PASSWORD": DB_PASSWORD,
-    "DB_NAME": DB_NAME,
-    "DB_HOST": DB_HOST
-}
-
-for var_name, var_value in required_db_vars.items():
-    if not var_value:
-        raise RuntimeError(f"Missing required environment variable: {var_name}")
-
-connection_string = f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-
-engine = create_engine(
-    connection_string,
-    pool_size=10,
-    max_overflow=20,
-    pool_recycle=3600
-)
 
 # -------------------------------------------------------
 # External API Keys
@@ -154,7 +126,7 @@ def login_page():
             return redirect(url_for("login_page"))
 
         try:
-            user = authenticate_user(engine, email, password)
+            user = authenticate_user(email, password)
 
             if user is None:
                 flash("Invalid email or password.", "error")
