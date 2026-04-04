@@ -4,12 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Troithean</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
 </head>
-
-<body>
+<body class="app-page">
     <div class="layout">
-        <div id="sidebar">
+        <aside id="sidebar">
             <div class="sidebar-header">
                 <div class="brand">
                     <div class="brand-badge">T</div>
@@ -29,7 +29,7 @@
                 <div class="card-body">
                     <p>
                         Welcome to <strong>Troithean</strong>, your Dublin Bikes web application for
-                        viewing live station data, weather updates, and nearby route suggestions.
+                        viewing live station data, bike availability, weather updates, and nearby route suggestions.
                     </p>
                 </div>
             </div>
@@ -72,14 +72,19 @@
                     <div class="skeleton" style="width: 50%"></div>
                 </div>
             </div>
-        </div>
 
-        <div id="map"></div>
+            <div class="card">
+                <h2>Account</h2>
+                <div class="card-body">
+                    <a href="{{ url_for('login_page') }}" class="action-btn">Login</a>
+                </div>
+            </div>
+        </aside>
+
+        <main id="map"></main>
     </div>
 
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
-
-    <!-- Google Maps API -->
     <script src="https://maps.googleapis.com/maps/api/js?key={{ google_maps_api_key }}&callback=initMap" async defer></script>
 </body>
 </html>
