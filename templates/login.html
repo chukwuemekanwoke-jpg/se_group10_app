@@ -10,28 +10,58 @@
     <div class="auth-page">
         <div class="auth-card">
             <div class="auth-header">
-                <h1>Troithean</h1>
-                <p>Sign in to access the Dublin Bikes platform</p>
+                <h1>Welcome Back</h1>
+                <p>Sign in to continue to Troithean</p>
             </div>
 
-            <form id="loginForm" class="auth-form">
-                <div>
-                    <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="Enter your email" required>
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <p class="flash-message {{ category }}">{{ message }}</p>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form id="loginForm" class="auth-form" method="POST" action="/login">
+                <div class="form-group">
+                    <label for="email">Email Address</label>
+                    <input
+                        type="email"
+                        id="email"
+                        name="email"
+                        placeholder="Enter your email"
+                        required
+                    >
                 </div>
 
-                <div>
+                <div class="form-group">
                     <label for="password">Password</label>
-                    <input type="password" id="password" name="password" placeholder="Enter your password" required>
+                    <input
+                        type="password"
+                        id="password"
+                        name="password"
+                        placeholder="Enter your password"
+                        required
+                    >
                 </div>
 
-                <button type="submit" class="action-btn">Login</button>
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember_me" id="remember_me">
+                        <span>Remember me</span>
+                    </label>
+
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+
+                <button type="submit" class="action-btn">Log In</button>
+
+                <p id="loginMessage" class="auth-message"></p>
             </form>
 
-            <div id="loginMessage" class="auth-message"></div>
-
             <div class="auth-links">
-                <a href="{{ url_for('root') }}">Back to Home</a>
+                <p>Don’t have an account? <a href="/register">Register here</a></p>
+                <p><a href="{{ url_for('root') }}">Back to home</a></p>
             </div>
         </div>
     </div>
