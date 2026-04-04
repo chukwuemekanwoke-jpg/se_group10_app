@@ -25,7 +25,8 @@
   box-sizing: border-box;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
 }
@@ -38,7 +39,12 @@ body {
 }
 
 /* Typography */
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin-top: 0;
   margin-bottom: 0.5rem;
   color: var(--text);
@@ -246,7 +252,7 @@ textarea:focus {
 .mb-4 { margin-bottom: 16px; }
 .mb-5 { margin-bottom: 24px; }
 
-/* Future subscription/settings page helpers */
+/* Panels / settings */
 .panel {
   background: var(--surface);
   border: 1px solid var(--border);
