@@ -7,7 +7,8 @@ Handles:
 - Template rendering
 - RDS database routes
 - Live external API data
-- Placeholder authentication
+- Authentication page routing
+- Placeholder authentication logic
 - Placeholder ML prediction
 """
 
@@ -22,7 +23,8 @@ from flask import (
     session,
     redirect,
     url_for,
-    render_template
+    render_template,
+    flash
 )
 from sqlalchemy import create_engine, text
 from dotenv import load_dotenv
@@ -34,11 +36,8 @@ load_dotenv()
 # App Setup
 # -------------------------------------------------------
 app = Flask(__name__)
-
-# Secret key for session management
 app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
 
-# Logging setup
 logging.basicConfig(level=logging.INFO)
 
 # -------------------------------------------------------
@@ -100,31 +99,44 @@ def root():
         google_maps_api_key=GOOGLE_MAPS_API_KEY
     )
 
-@app.route('/login')
+@app.route('/login', methods=['GET', 'POST'])
 def login_page():
-    """Render the login page."""
+    """
+    Render login page on GET.
+    Handle placeholder login submission on POST.
+    """
+    if request.method == 'POST':
+        email = request.form.get('email', '').strip()
+        password = request.form.get('password', '').strip()
+
+        if not email or not password:
+            flash('Please enter both email and password.', 'error')
+            return redirect(url_for('login_page'))
+
+        # Placeholder login logic
+        flash('Login request received. Authentication logic is not yet implemented.', 'success')
+        return redirect(url_for('login_page'))
+
     return render_template('login.html')
 
-# -------------------------------------------------------
-# User Authentication Routes (Placeholders)
-# -------------------------------------------------------
-@app.route('/api/register', methods=['POST'])
-def register():
-    """Placeholder for user registration logic."""
-    # TODO: Hash password and save to RDS 'users' table
-    return jsonify({"message": "Registration logic placeholder"})
-
-@app.route('/api/login', methods=['POST'])
-def login():
-    """Placeholder for session-based login logic."""
-    # TODO: Verify credentials and set session['user_id']
-    return jsonify({"message": "Login logic placeholder"})
-
-@app.route('/api/logout')
+@app.route('/logout')
 def logout():
     """Clear the current user session."""
     session.pop('user_id', None)
     return redirect(url_for('root'))
+
+# -------------------------------------------------------
+# Authentication API Routes (Optional / Placeholder)
+# -------------------------------------------------------
+@app.route('/api/register', methods=['POST'])
+def register():
+    """Placeholder for user registration logic."""
+    return jsonify({"message": "Registration logic placeholder"})
+
+@app.route('/api/login', methods=['POST'])
+def login_api():
+    """Placeholder for API-based login logic."""
+    return jsonify({"message": "Login API placeholder"})
 
 # -------------------------------------------------------
 # ML Prediction Route (Placeholder)
@@ -132,7 +144,6 @@ def logout():
 @app.route('/api/predict/<int:station_id>')
 def predict(station_id):
     """Placeholder for ML model inference."""
-    # TODO: Load model.pkl and predict based on time/weather
     return jsonify({
         "station_id": station_id,
         "predicted_bikes": "ML model logic placeholder"
@@ -213,5 +224,4 @@ def internal_error(e):
 # Run App
 # -------------------------------------------------------
 if __name__ == "__main__":
-    # Use debug=False in production
     app.run(debug=True, host="0.0.0.0", port=5000)
