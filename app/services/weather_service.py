@@ -259,4 +259,44 @@ class WeatherService:
             if db_session:
                 db_session.rollback()
             logger.error(f"Error saving weather data to database: {e}", exc_info=True)
-            return<span class="ml-2" /><span class="inline-block w-3 h-3 rounded-full bg-neutral-a12 align-middle mb-[0.1rem]" />
+            return False
+
+    @staticmethod
+    def parse_weather_summary(weather_data):
+        """
+        Parse and summarize weather data into a human-readable format.
+
+        Args:
+            weather_data (dict): Raw weather data from OpenWeather API
+
+        Returns:
+            dict: Summarized weather information
+        """
+        try:
+            if not weather_data:
+                return {}
+
+            main = weather_data.get("main", {})
+            weather = weather_data.get("weather", [{}])[0]
+            wind = weather_data.get("wind", {})
+
+            summary = {
+                "city": weather_data.get("name"),
+                "temperature": main.get("temp"),
+                "feels_like": main.get("feels_like"),
+                "condition": weather.get("main"),
+                "description": weather.get("description"),
+                "humidity": main.get("humidity"),
+                "wind_speed": wind.get("speed"),
+                "wind_direction": wind.get("deg"),
+                "clouds": weather_data.get("clouds", {}).get("all"),
+                "visibility": weather_data.get("visibility"),
+                "precipitation": weather_data.get("rain", {}).get("1h", 0) +
+                                 weather_data.get("snow", {}).get("1h", 0)
+            }
+
+            return summary
+
+        except Exception as e:
+            logger.error(f"Error parsing weather summary: {e}", exc_info=True)
+            return {}
