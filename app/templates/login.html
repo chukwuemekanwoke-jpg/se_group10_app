@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Troithean</title>
+    <title>Login - Dublin Bikes</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
@@ -11,12 +11,12 @@
         <div class="login-card">
             <div class="login-header">
                 <h1>Welcome Back</h1>
-                <p>Sign in to continue to Troithean</p>
+                <p>Sign in to continue to Dublin Bikes</p>
             </div>
 
             {% if logged_in %}
                 <p class="flash-message success">
-                    You are currently logged in as {{ user_name }}.
+                    You are already logged in as {{ user_name }}.
                     <a href="{{ url_for('main.logout') }}">Log out</a>
                 </p>
             {% endif %}
@@ -56,14 +56,22 @@
                     >
                 </div>
 
+                <div class="form-options">
+                    <label class="remember-me">
+                        <input type="checkbox" name="remember_me" id="remember_me">
+                        <span>Remember me</span>
+                    </label>
+                    <a href="#" class="forgot-password">Forgot password?</a>
+                </div>
+
                 <button type="submit" class="login-btn">Log In</button>
 
                 <p id="loginMessage" class="form-message"></p>
             </form>
 
             <div class="login-footer">
-                <p>Don’t have an account? <a href="{{ url_for('main.register_page') }}">Register here</a></p>
-                <p><a href="{{ url_for('main.index_page') }}">Back to home</a></p>
+                <p>Don't have an account? <a href="{{ url_for('main.register_page') }}">Register here</a></p>
+                <p><a href="{{ url_for('main.index_page') }}">Back to map</a></p>
             </div>
         </div>
     </div>
