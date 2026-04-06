@@ -3,7 +3,6 @@
 SQLAlchemy ORM models.
 All table definitions live here.
 
-Import db from database/db.py — NOT from extensions.py.
 """
 
 from datetime import datetime
