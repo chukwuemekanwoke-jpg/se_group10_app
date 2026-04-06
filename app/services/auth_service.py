@@ -144,7 +144,7 @@ if __name__ == "__main__":
 
 from sqlalchemy import text
 from werkzeug.security import check_password_hash
-from app.db import engine
+from app.database.db import engine
 
 
 def get_user_by_email(email):
