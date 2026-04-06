@@ -1,11 +1,17 @@
+"""
+Flask Application Factory.
+Creates and configures the app instance.
+"""
+
 import os
 import logging
 from flask import Flask, jsonify, request
+from flask_cors import CORS
 from dotenv import load_dotenv
-from app.extensions import db, cors
+from app.config import config
+from app.database.db import init_db
 
 load_dotenv()
-
 
 def create_app():
     app = Flask(
@@ -14,20 +20,28 @@ def create_app():
         static_folder="static"
     )
 
-    secret_key = os.getenv("SECRET_KEY")
-    if not secret_key:
-        raise RuntimeError("Missing required environment variable: SECRET_KEY")
+    #Read environment name from .env - default to "development" if not set
 
-    app.config["SECRET_KEY"] = secret_key
-    app.config["GOOGLE_MAPS_API_KEY"] = os.getenv("GOOGLE_MAPS_API_KEY")
-    app.config["JCDECAUX_API_KEY"] = os.getenv("JCDECAUX_API_KEY")
-    app.config["OPENWEATHER_API_KEY"] = os.getenv("OPENWEATHER_API_KEY")
+    config_name = os.getenv("FLASK_ENV", "development")
 
-    logging.basicConfig(level=logging.INFO)
+    config_class = config.get(config_name)
+    if not config_class:
+        raise RuntimeError(
+            f"Unknown FLASK_ENV value: '{config_name}'. "
+            f"Expected one of: {list(config.keys())}"
+        )
 
-    #Initialize extensions WITH the app
-    db.init_app(app)
-    cors.init_app(app)
+    app.config.from_object(config_class)
+
+    #Logging
+    log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
+    logging.basicConfig(level=log_level)
+
+    #Database
+    init_db(app)
+
+    #CORS
+    CORS(app)
     
     # Register blueprints
     from app.main import main_bp
