@@ -159,17 +159,93 @@ class AuthService:
     # ── Authentication 
 
     @staticmethod
-    def verify_login(email: str, password: str) -> Optional[User]:
+    def verify_login(email: str, password: str) -> tuple[Optional[User], Optional[str]]:
         """
         Verify login credentials.
-        Returns the User object if valid, otherwise None.
+        
+        Args:
+            email: User's email address
+            password: User's plaintext password
+        
+        Returns:
+            (user: User object or None, error_message: str or None)
+            If valid: (User, None)
+            If invalid: (None, error_message)
         """
+        # Validate form first
+        valid, msg = AuthService.validate_login_form(email, password)
+        if not valid:
+            return None, msg
+        
         user = AuthService.get_user_by_email(email)
         if user and AuthService.verify_password(user.password_hash, password):
             logger.info(f"Successful login: {email}")
-            return user
+            return user, None
+        
         logger.warning(f"Failed login attempt: {email}")
-        return None
+        return None, "Invalid email or password."
+
+    # ── User Preferences
+
+    @staticmethod
+    def update_preferences(user_id: int, preferences: dict) -> tuple[bool, str]:
+        """
+        Update user notification preferences.
+        
+        Args:
+            user_id: User ID
+            preferences: Dict with keys:
+                - email_notifications: bool
+                - weather_alerts: bool
+                - prediction_updates: bool
+        
+        Returns:
+            (success: bool, message: str)
+        """
+        try:
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if not user:
+                return False, "User not found."
+            
+            user.email_notifications = preferences.get("email_notifications", False)
+            user.weather_alerts = preferences.get("weather_alerts", False)
+            user.prediction_updates = preferences.get("prediction_updates", False)
+            
+            db.session.commit()
+            logger.info(f"Updated preferences for user {user_id}")
+            return True, "Preferences updated successfully."
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Error updating preferences for user {user_id}: {e}")
+            return False, "Failed to update preferences."
+
+    @staticmethod
+    def get_preferences(user_id: int) -> tuple[Optional[dict], Optional[str]]:
+        """
+        Fetch user notification preferences.
+        
+        Args:
+            user_id: User ID
+        
+        Returns:
+            (preferences: dict or None, error: str or None)
+            If successful: (preferences_dict, None)
+            If error: (None, error_message)
+        """
+        try:
+            user = db.session.query(User).filter_by(id=user_id).first()
+            if not user:
+                return None, "User not found."
+            
+            preferences = {
+                "email_notifications": user.email_notifications,
+                "weather_alerts": user.weather_alerts,
+                "prediction_updates": user.prediction_updates,
+            }
+            return preferences, None
+        except Exception as e:
+            logger.error(f"Error fetching preferences for user {user_id}: {e}")
+            return None, str(e)
 
 
 # ── Standalone Test Block
