@@ -1,294 +1,336 @@
 """
-app/api/routes.py - API Blueprint Routes
-Dublin Bikes Web App - COMP30830 Project - Troithean
+API Blueprint - RESTful API endpoints for client applications.
 
-Handles:
-- RESTful API endpoints for bike/availability data
-- Live external API data (JCDecaux, OpenWeather)
-- ML prediction endpoints
-- API error handling and JSON responses
+All routes follow this pattern:
+1. Validate input (path params, query params)
+2. Call service(s)
+3. Handle errors
+4. Return JSON with appropriate status code
+
+No business logic in this file - all services.
+No database queries in this file - use services.
 """
 
 import logging
-from flask import Blueprint, jsonify, current_app, abort, request
-from sqlalchemy import text
-from sqlalchemy.exc import SQLAlchemyError
-
-from app.services.jcdecaux_service import get_live_bike_data
-from app.services.weather_service import get_live_weather_data
-from app.db import Availability, Station
-
-# Create the API blueprint
-api_bp = Blueprint("api", __name__)
+from flask import Blueprint, jsonify, request, current_app
+from app.api import api_bp
 
 logger = logging.getLogger(__name__)
 
+# ============ STATION DATA ============
 
-# -------------------------------------------------------
-# Station Data Routes
-# -------------------------------------------------------
 @api_bp.route("/stations", methods=["GET"])
 def get_stations():
     """
-    Fetch all bike stations from the database.
-    Returns complete station information including location and capacity.
-
+    Fetch all bike stations from database.
+    
+    GET /api/stations
+    
     Returns:
-        JSON: Array of station objects
+        JSON: { "stations": [...] }
+        Status: 200 (success), 503 (service unavailable)
     """
     try:
-        db_session = current_app.db_session
-        stations = db_session.query(Station).all()
+        from app.services.bike_service import BikeService
+        
+        stations = BikeService.get_all_stations()
+        
+        return jsonify(stations=stations), 200
 
-        stations_data = [station.to_dict() for station in stations]
-
-        return jsonify(stations=stations_data), 200
-
-    except SQLAlchemyError as e:
-        logger.error(f"Database error fetching stations: {e}", exc_info=True)
-        return jsonify(error="Database error"), 500
     except Exception as e:
-        logger.error(f"Error fetching stations: {e}", exc_info=True)
-        return jsonify(error="Internal server error"), 500
+        logger.error(f"Error fetching stations: {e}")
+        return jsonify(error="Could not fetch stations"), 503
 
 
 @api_bp.route("/stations/<int:station_id>", methods=["GET"])
 def get_station(station_id):
     """
     Fetch a single station by ID.
-
+    
+    GET /api/stations/42
+    
     Args:
-        station_id: The station number
-
+        station_id: Station number
+    
     Returns:
-        JSON: Station object or 404 if not found
+        JSON: { "station": {...} }
+        Status: 200 (success), 404 (not found), 503 (error)
     """
+    # Input validation
+    if not isinstance(station_id, int) or station_id <= 0:
+        return jsonify(error="Invalid station ID"), 400
+    
     try:
-        db_session = current_app.db_session
-        station = db_session.query(Station).filter_by(number=station_id).first()
-
+        from app.services.bike_service import BikeService
+        
+        station = BikeService.get_station_by_id(station_id)
+        
         if not station:
             return jsonify(error="Station not found"), 404
+        
+        return jsonify(station=station), 200
 
-        return jsonify(station=station.to_dict()), 200
-
-    except SQLAlchemyError as e:
-        logger.error(f"Database error fetching station {station_id}: {e}", exc_info=True)
-        return jsonify(error="Database error"), 500
     except Exception as e:
-        logger.error(f"Error fetching station {station_id}: {e}", exc_info=True)
-        return jsonify(error="Internal server error"), 500
+        logger.error(f"Error fetching station {station_id}: {e}")
+        return jsonify(error="Could not fetch station"), 503
 
 
-# -------------------------------------------------------
-# Availability Data Routes
-# -------------------------------------------------------
+# ============ AVAILABILITY DATA ============
+
 @api_bp.route("/availability/<int:station_id>", methods=["GET"])
 def get_availability(station_id):
     """
     Fetch recent availability history for a station.
-    Returns up to 100 most recent records, ordered by newest first.
-
+    
+    GET /api/availability/42
+    
+    Query params:
+        limit: Max records (default 100, max 1000)
+    
     Args:
-        station_id: The station number
-
+        station_id: Station number
+    
     Returns:
-        JSON: Array of availability records
-        404: If station has no records
-        500: Database error
+        JSON: { "available": [...] }
+        Status: 200, 404 (no data), 503 (error)
     """
+    # Input validation
+    if not isinstance(station_id, int) or station_id <= 0:
+        return jsonify(error="Invalid station ID"), 400
+    
+    # Get and validate limit param
     try:
-        db_session = current_app.db_session
+        limit = int(request.args.get("limit", 100))
+        limit = min(limit, 1000)  # Cap at 1000 records
+        limit = max(limit, 1)
+    except ValueError:
+        return jsonify(error="Invalid limit parameter"), 400
+    
+    try:
+        from app.services.bike_service import BikeService
+        
+        records = BikeService.get_availability_history(station_id, limit)
+        
+        if not records:
+            return jsonify(error="No availability data for this station"), 404
+        
+        return jsonify(available=records), 200
 
-        availability_records = (
-            db_session.query(Availability)
-            .filter_by(number=station_id)
-            .order_by(Availability.last_update.desc())
-            .limit(100)
-            .all()
-        )
-
-        if not availability_records:
-            return jsonify(error="No availability data found for this station"), 404
-
-        data = [record.to_dict() for record in availability_records]
-
-        return jsonify(available=data), 200
-
-    except SQLAlchemyError as e:
-        logger.error(
-            f"Database error fetching availability for station {station_id}: {e}",
-            exc_info=True
-        )
-        return jsonify(error="Database error"), 500
     except Exception as e:
-        logger.error(
-            f"Error fetching availability for station {station_id}: {e}",
-            exc_info=True
-        )
-        return jsonify(error="Internal server error"), 500
+        logger.error(f"Error fetching availability {station_id}: {e}")
+        return jsonify(error="Could not fetch availability data"), 503
 
 
 @api_bp.route("/availability/<int:station_id>/latest", methods=["GET"])
 def get_latest_availability(station_id):
     """
     Fetch the most recent availability record for a station.
-
+    
+    GET /api/availability/42/latest
+    
     Args:
-        station_id: The station number
-
+        station_id: Station number
+    
     Returns:
-        JSON: Most recent availability record
-        404: If no records found
+        JSON: { "available": {...} }
+        Status: 200, 404 (no data), 503 (error)
     """
+    if not isinstance(station_id, int) or station_id <= 0:
+        return jsonify(error="Invalid station ID"), 400
+    
     try:
-        db_session = current_app.db_session
+        from app.services.bike_service import BikeService
+        
+        records = BikeService.get_availability_history(station_id, limit=1)
+        
+        if not records:
+            return jsonify(error="No availability data"), 404
+        
+        return jsonify(available=records[0]), 200
 
-        latest = (
-            db_session.query(Availability)
-            .filter_by(number=station_id)
-            .order_by(Availability.last_update.desc())
-            .first()
-        )
-
-        if not latest:
-            return jsonify(error="No availability data found"), 404
-
-        return jsonify(available=latest.to_dict()), 200
-
-    except SQLAlchemyError as e:
-        logger.error(
-            f"Database error fetching latest availability for {station_id}: {e}",
-            exc_info=True
-        )
-        return jsonify(error="Database error"), 500
     except Exception as e:
-        logger.error(
-            f"Error fetching latest availability: {e}",
-            exc_info=True
-        )
-        return jsonify(error="Internal server error"), 500
+        logger.error(f"Error fetching latest availability {station_id}: {e}")
+        return jsonify(error="Could not fetch availability"), 503
 
 
-# -------------------------------------------------------
-# Live External Data Routes
-# -------------------------------------------------------
+# ============ LIVE EXTERNAL DATA ============
+
 @api_bp.route("/bikes/live", methods=["GET"])
 def live_bikes():
     """
     Return live bike station data from JCDecaux API.
-    This includes real-time availability across all Dublin Bikes stations.
-
+    
+    GET /api/bikes/live
+    
     Returns:
-        JSON: Array of live bike station data
+        JSON: Array of live station data from JCDecaux
+        Status: 200, 503 (API unavailable)
     """
     try:
+        from app.services.jcdecaux_service import get_live_bike_data
+        
         data = get_live_bike_data()
+        
+        # Even if empty, return 200 - the service handles errors
         return jsonify(data), 200
+
     except Exception as e:
-        logger.error(f"Error fetching live bike data: {e}", exc_info=True)
-        return jsonify(error="Could not fetch live bike data"), 503
+        logger.error(f"Error fetching live bike data: {e}")
+        return jsonify(error="Could not fetch live bike data", data=[]), 503
 
 
 @api_bp.route("/weather/live", methods=["GET"])
 def live_weather():
     """
     Return live weather data from OpenWeather API.
-    Includes temperature, conditions, wind, and precipitation data.
-
+    
+    GET /api/weather/live
+    
     Returns:
-        JSON: Weather data object
+        JSON: Current Dublin weather
+        Status: 200, 503 (API unavailable)
     """
     try:
+        from app.services.weather_service import get_live_weather_data
+        
         data = get_live_weather_data()
+        
         return jsonify(data), 200
+
     except Exception as e:
-        logger.error(f"Error fetching live weather data: {e}", exc_info=True)
-        return jsonify(error="Could not fetch live weather data"), 503
+        logger.error(f"Error fetching live weather: {e}")
+        return jsonify(error="Could not fetch weather data", data={}), 503
 
 
-# -------------------------------------------------------
-# ML Prediction Routes (Placeholder)
-# -------------------------------------------------------
+# ============ PREDICTIONS (PLACEHOLDER) ============
+
 @api_bp.route("/predict/<int:station_id>", methods=["GET"])
 def predict(station_id):
     """
-    Placeholder for ML model inference.
-    Predicts available bikes at a station.
-
+    Predict available bikes at a station (placeholder).
+    
+    GET /api/predict/42
+    
     Args:
-        station_id: The station number
-
+        station_id: Station number
+    
     Returns:
-        JSON: Prediction object or placeholder message
+        JSON: Prediction data (currently placeholder)
+        Status: 200, 503 (error)
+    
+    TODO: Integrate with ML model when ready
     """
+    if not isinstance(station_id, int) or station_id <= 0:
+        return jsonify(error="Invalid station ID"), 400
+    
     try:
-        # TODO: Implement ML model loading and inference
-        # For now, return placeholder response
+        # TODO: Load ML model and make prediction
+        # from app.services.prediction_service import PredictionService
+        # prediction = PredictionService.predict_availability(station_id)
+        
+        # For now, return placeholder
         return jsonify({
             "station_id": station_id,
-            "predicted_bikes": "ML model logic to be implemented",
+            "prediction": None,
             "confidence": 0.0,
-            "timestamp": None
+            "message": "Prediction service not yet implemented"
         }), 200
 
     except Exception as e:
-        logger.error(f"Error in prediction for station {station_id}: {e}", exc_info=True)
+        logger.error(f"Prediction error for station {station_id}: {e}")
         return jsonify(error="Prediction service unavailable"), 503
 
 
-@api_bp.route("/predict/<int:station_id>/<string:timeframe>", methods=["GET"])
+@api_bp.route("/predict/<int:station_id>/<timeframe>", methods=["GET"])
 def predict_timeframe(station_id, timeframe):
     """
-    Predict available bikes at a station for a specific timeframe.
-    Timeframe: '1h', '24h', '7d'
-
+    Predict available bikes for a specific timeframe (placeholder).
+    
+    GET /api/predict/42/1h
+    
     Args:
-        station_id: The station number
-        timeframe: Prediction timeframe
-
+        station_id: Station number
+        timeframe: "1h", "24h", or "7d"
+    
     Returns:
-        JSON: Prediction data or error
+        JSON: Timeframe prediction
+        Status: 200, 400 (invalid timeframe), 503 (error)
+    
+    TODO: Implement when ML model is ready
     """
+    # Input validation
+    if not isinstance(station_id, int) or station_id <= 0:
+        return jsonify(error="Invalid station ID"), 400
+    
     valid_timeframes = ["1h", "24h", "7d"]
     if timeframe not in valid_timeframes:
-        return jsonify(error=f"Invalid timeframe. Must be one of {valid_timeframes}"), 400
-
+        return jsonify(
+            error=f"Invalid timeframe. Must be one of {valid_timeframes}"
+        ), 400
+    
     try:
-        # TODO: Implement ML model with timeframe support
+        # TODO: Implement timeframe prediction
         return jsonify({
             "station_id": station_id,
             "timeframe": timeframe,
             "predictions": [],
-            "message": "ML model logic to be implemented"
+            "message": "Timeframe predictions not yet implemented"
         }), 200
 
     except Exception as e:
-        logger.error(
-            f"Error in timeframe prediction for station {station_id}: {e}",
-            exc_info=True
-        )
+        logger.error(f"Timeframe prediction error: {e}")
         return jsonify(error="Prediction service unavailable"), 503
 
 
-# -------------------------------------------------------
-# Health Check and Status Routes
-# -------------------------------------------------------
+# ============ HEALTH & STATUS ============
+
 @api_bp.route("/health", methods=["GET"])
 def health_check():
     """
     Health check endpoint for monitoring.
-    Verifies database connectivity.
-
+    
+    GET /api/health
+    
     Returns:
-        JSON: Health status
+        JSON: { "status": "healthy", "database": "connected" }
+        Status: 200 (healthy), 503 (problems)
     """
     try:
-        db_session = current_app.db_session
-        # Simple query to test database connection
-        db_session.execute(text("SELECT 1"))
-        return jsonify(status="healthy", database="connected"), 200
+        from sqlalchemy import text
+        
+        # Test database connection
+        current_app.db_session.execute(text("SELECT 1"))
+        
+        return jsonify(
+            status="healthy",
+            database="connected"
+        ), 200
 
     except Exception as e:
-        logger.error(f"Health check failed: {e}", exc_info=True)
-        return jsonify(status="unhealthy", database="disconnected", error=str(e)), 503
+        logger.error(f"Health check failed: {e}")
+        return jsonify(
+            status="unhealthy",
+            database="disconnected",
+            error=str(e)
+        ), 503
+
+
+# ============ ERROR HANDLERS (For API blueprint only) ============
+
+@api_bp.errorhandler(404)
+def api_not_found(e):
+    """Handle 404 errors in API."""
+    return jsonify(error="Endpoint not found"), 404
+
+
+@api_bp.errorhandler(405)
+def api_method_not_allowed(e):
+    """Handle 405 errors in API."""
+    return jsonify(error="Method not allowed"), 405
+
+
+@api_bp.errorhandler(500)
+def api_internal_error(e):
+    """Handle 500 errors in API."""
+    logger.error(f"Internal API error: {e}")
+    return jsonify(error="Internal server error"), 500
