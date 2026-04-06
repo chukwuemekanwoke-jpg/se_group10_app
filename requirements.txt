@@ -8,3 +8,5 @@ pandas
 numpy
 mysql-connector-python
 Werkzeug
+Flask-Cors
+Flask-SQLAlchemy
