@@ -14,6 +14,9 @@ from app.database import db, init_db
 load_dotenv()
 
 def create_app():
+
+    global logging
+    
     app = Flask(
         __name__,
         template_folder="templates",
