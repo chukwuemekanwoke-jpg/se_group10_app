@@ -139,7 +139,8 @@ def register_page():
         first_name = request.form.get("first_name", "").strip()
         last_name  = request.form.get("last_name",  "").strip()
         email      = request.form.get("email",      "").strip().lower()
-        phone      = request.form.get("phone",      "").strip() or None
+        # Support both field names used across branches
+        phone      = (request.form.get("phone") or request.form.get("phone_number", "")).strip() or None
         password   = request.form.get("password",   "")
         confirm    = request.form.get("confirm_password", "")
 
