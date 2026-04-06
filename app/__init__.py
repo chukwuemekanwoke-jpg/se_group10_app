@@ -10,16 +10,9 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 from app.config import config
 from app.database import db, init_db
-from app.services import AuthService, BikeService
 
 load_dotenv()
 
-def init_db(app):
-    """Initialize the database with the app."""
-    db.init_app(app)
-    with app.app_context():
-        db.create_all()
-        
 def create_app():
     app = Flask(
         __name__,
@@ -27,8 +20,7 @@ def create_app():
         static_folder="static"
     )
 
-    #Read environment name from .env - default to "development" if not set
-
+    # Read environment name from .env - default to "development" if not set
     config_name = os.getenv("FLASK_ENV", "development")
 
     config_class = config.get(config_name)
@@ -40,14 +32,33 @@ def create_app():
 
     app.config.from_object(config_class)
 
-    #Logging
+    # Logging configuration
     log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
     logging.basicConfig(level=log_level)
 
-    #Database
+    # File logging for production
+    if not app.debug:
+        import logging.handlers
+        
+        if not os.path.exists("logs"):
+            os.mkdir("logs")
+        
+        file_handler = logging.handlers.RotatingFileHandler(
+            "logs/troithean.log",
+            maxBytes=10240000,  # 10MB
+            backupCount=10
+        )
+        file_handler.setFormatter(logging.Formatter(
+            '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+        ))
+        file_handler.setLevel(log_level)
+        app.logger.addHandler(file_handler)
+        app.logger.setLevel(log_level)
+
+    # Database initialization
     init_db(app)
 
-    #CORS
+    # CORS
     CORS(app)
     
     # Register blueprints
