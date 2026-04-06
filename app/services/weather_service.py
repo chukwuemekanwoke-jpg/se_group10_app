@@ -210,7 +210,7 @@ def save_weather_to_db(weather_data):
         bool: True if saved successfully, False otherwise
     """
     try:
-        from app.db import WeatherCurrent
+        from app.database.db import WeatherCurrent
 
         if not weather_data:
             logger.warning("Cannot save empty weather data")
