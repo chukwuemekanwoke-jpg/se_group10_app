@@ -9,7 +9,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
 from app.config import config
-from app.database import db
+from app.database import db, init_db
 from app.services import AuthService, BikeService
 
 load_dotenv()
