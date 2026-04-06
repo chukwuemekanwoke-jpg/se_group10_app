@@ -21,6 +21,8 @@ OPENWEATHER_BASE_URL = "https://api.openweathermap.org/data/2.5"
 DUBLIN_CITY_ID = 2988507
 REQUEST_TIMEOUT = 5  # seconds
 
+class WeatherService:
+    """Service class for interacting with the OpenWeather API."""
 
 def get_live_weather_data():
     """
