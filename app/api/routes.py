@@ -62,7 +62,7 @@ def get_all_stations():
     """
     try:
         stations = BikeService.get_all_stations()
-        return jsonify(stations=[s.to_dict() for s in stations]), 200
+        return jsonify(stations=stations), 200 
     except Exception as e:
         logger.error(f"Error fetching stations: {e}")
         return jsonify(error="Failed to fetch stations"), 500
@@ -84,7 +84,7 @@ def get_station(station_id):
         station = BikeService.get_station(station_id)
         if not station:
             return jsonify(error="Station not found"), 404
-        return jsonify(station.to_dict()), 200
+        return jsonify(station), 200
     except Exception as e:
         logger.error(f"Error fetching station {station_id}: {e}")
         return jsonify(error="Failed to fetch station"), 500
@@ -110,7 +110,7 @@ def get_station_availability(station_id):
         availability = BikeService.get_latest_availability(station_id)
         if not availability:
             return jsonify(error="Station not found"), 404
-        return jsonify(availability.to_dict()), 200
+        return jsonify(availability), 200
     except Exception as e:
         logger.error(f"Error fetching availability for station {station_id}: {e}")
         return jsonify(error="Failed to fetch availability"), 500
@@ -133,7 +133,7 @@ def get_weather():
         weather = WeatherService.get_current_weather()
         if not weather:
             return jsonify(error="Weather data unavailable"), 503
-        return jsonify(weather.to_dict()), 200
+        return jsonify(weather), 200
     except Exception as e:
         logger.error(f"Error fetching weather: {e}")
         return jsonify(error="Failed to fetch weather"), 500
