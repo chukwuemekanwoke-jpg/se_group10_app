@@ -7,6 +7,7 @@ and constants used throughout the application.
 """
 
 import os
+import warnings
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -14,15 +15,12 @@ load_dotenv()
 
 
 class Config:
-    """Base configuration class."""
+    """Base configuration class - shared settings."""
 
     # Flask Settings
     SECRET_KEY = os.getenv("SECRET_KEY")
     if not SECRET_KEY:
         raise RuntimeError("Missing required environment variable: SECRET_KEY")
-
-    FLASK_DEBUG = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-    FLASK_ENV = os.getenv("FLASK_ENV", "development")
 
     # Database Configuration
     DB_HOST = os.getenv("DB_HOST", "localhost")
@@ -39,13 +37,22 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
         "pool_recycle": 3600,
-        "echo": False,
     }
+    
 
     # External API Keys
     JCDECAUX_API_KEY = os.getenv("JCDECAUX_API_KEY")
     OPENWEATHER_API_KEY = os.getenv("OPENWEATHER_API_KEY")
     GOOGLE_MAPS_API_KEY = os.getenv("GOOGLE_MAPS_API_KEY")
+
+    for _key, _val in {
+        "JCDECAUX_API_KEY":    JCDECAUX_API_KEY,
+        "OPENWEATHER_API_KEY": OPENWEATHER_API_KEY,
+        "GOOGLE_MAPS_API_KEY": GOOGLE_MAPS_API_KEY,
+    }.items():
+        if not _val:
+            warnings.warn(f"Missing API key: {_key}", RuntimeWarning, stacklevel=2)
+
 
     # Session Configuration
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
@@ -61,20 +68,24 @@ class DevelopmentConfig(Config):
     """Development environment configuration."""
     DEBUG = True
     TESTING = False
+    SQLALCHEMY_ECHO = True #Log SQL queries during development
 
 
 class ProductionConfig(Config):
     """Production environment configuration."""
     DEBUG = False
     TESTING = False
-    SESSION_COOKIE_SECURE = True
-
+    SQLALCHEMY_ECHO = False 
+    SESSION_COOKIE_SECURE = True #HTTPS only
+    
 
 class TestingConfig(Config):
     """Testing environment configuration."""
     DEBUG = True
     TESTING = True
+    SECRET_KEY = "test-secret-key" #Bypasses RuntimeError in CI
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
+    SQLALCHEMY_ECHO = False
 
 
 # Export config by environment
