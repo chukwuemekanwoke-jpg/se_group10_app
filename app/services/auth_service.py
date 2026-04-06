@@ -141,6 +141,7 @@ if __name__ == "__main__":
     # Verify it
     is_correct = AuthService.verify_password(hashed, "mypassword")
     print(f"Correct: {is_correct}")
+
 from sqlalchemy import text
 from werkzeug.security import check_password_hash
 from app.db import engine
@@ -151,6 +152,9 @@ def get_user_by_email(email):
     Fetch a user by email from the users table.
     Returns a dict if found, otherwise None.
     """
+    
+    
+    
     with engine.connect() as connection:
         query = text("""
             SELECT id, first_name, last_name, email, password_hash
