@@ -10,7 +10,7 @@ import os
 from app import create_app
 
 # Determine which configuration to use
-config_name = os.getenv("FLASK_ENV", "development")
+config_name = os.getenv("FLASK_ENV", "production")
 
 # Create the Flask app
 app = create_app(config_name)
