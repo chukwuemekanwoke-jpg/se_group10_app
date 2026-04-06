@@ -2,6 +2,7 @@ import os
 import logging
 from flask import Flask, jsonify, request
 from dotenv import load_dotenv
+from app.extensions import db, cors
 
 load_dotenv()
 
@@ -24,6 +25,11 @@ def create_app():
 
     logging.basicConfig(level=logging.INFO)
 
+    #Initialize extensions WITH the app
+    db.init_app(app)
+    cors.init_app(app)
+    
+    # Register blueprints
     from app.main import main_bp
     from app.api import api_bp
 
