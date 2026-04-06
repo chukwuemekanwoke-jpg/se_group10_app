@@ -19,7 +19,8 @@ JCDECAUX_BASE_URL = "https://api.jcdecaux.com/vls/v1"
 DUBLIN_CONTRACT = "dublin"
 REQUEST_TIMEOUT = 5  # seconds
 
-
+class JCDecauxService:
+    
 def get_live_bike_data():
     """
     Fetch live Dublin Bikes station data from JCDecaux API.
