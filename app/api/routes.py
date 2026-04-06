@@ -1,351 +1,161 @@
-# app/api/routes.py
 """
-API blueprint - JSON endpoints for frontend and external consumers.
+app/api/routes.py - API Blueprint Routes
+Dublin Bikes Web App - COMP30830 Project - Troithean
 
-Responsibilities:
-- Handle HTTP requests
-- Call services for business logic
-- Return JSON responses
+RESTful API endpoints for the Dublin Bikes application.
 
-Does NOT:
-- Access database directly (services do)
-- Handle business logic (services do)
-- Manage sessions (main routes do)
+Authentication & Security:
+- API endpoints do NOT use CSRF tokens (not applicable to REST/JSON APIs)
+- CSRF protection is handled in the main blueprint for form-based routes
+- Use Bearer tokens or OAuth for API authentication if adding auth later
+- Main blueprint routes use Flask session + CSRF tokens for HTML forms
+
+Endpoints:
+- GET /api/health — Health check for load balancers
+- GET /api/stations — List all bike stations
+- GET /api/stations/<id> — Get specific station details
+- GET /api/availability/<station_id> — Get current bike availability
+- GET /api/weather — Get current Dublin weather
+- Other endpoints as defined below
 """
 
-import logging
-from datetime import datetime
 from flask import jsonify, request
 from app.api import api_bp
-from app.services.bike_service import BikeService
-from app.services.weather_service import WeatherService
-from app.services.jcdecaux_service import JCDecauxService
+from app.services import BikeService, JCDecauxService, WeatherService
+import logging
 
 logger = logging.getLogger(__name__)
 
 
-# ============ ERROR HANDLERS ============
-
-@api_bp.errorhandler(400)
-def bad_request(e):
-    """Handle malformed requests."""
-    logger.warning(f"400 Bad Request: {e}")
-    return jsonify(error="Bad request", message=str(e)), 400
-
-
-@api_bp.errorhandler(401)
-def unauthorized(e):
-    """Handle unauthorized access attempts."""
-    logger.warning(f"401 Unauthorized: {e}")
-    return jsonify(error="Unauthorized", message="Authentication required"), 401
-
-
-@api_bp.errorhandler(403)
-def forbidden(e):
-    """Handle forbidden access."""
-    logger.warning(f"403 Forbidden: {e}")
-    return jsonify(error="Forbidden", message="You do not have access to this resource"), 403
-
-
-@api_bp.errorhandler(404)
-def not_found(e):
-    """Handle resource not found."""
-    logger.warning(f"404 Not Found: {request.url}")
-    return jsonify(error="Not found", message="The requested resource does not exist"), 404
-
-
-@api_bp.errorhandler(405)
-def method_not_allowed(e):
-    """Handle disallowed HTTP methods."""
-    logger.warning(f"405 Method Not Allowed: {request.method} {request.url}")
-    return jsonify(error="Method not allowed", message=str(e)), 405
-
-
-@api_bp.errorhandler(429)
-def too_many_requests(e):
-    """Handle rate limiting."""
-    logger.warning(f"429 Too Many Requests: {request.remote_addr}")
-    return jsonify(error="Too many requests", message="Rate limit exceeded. Please slow down."), 429
-
-
-@api_bp.errorhandler(500)
-def internal_server_error(e):
-    """Handle unexpected server errors."""
-    logger.error(f"500 Internal Server Error: {e}")
-    return jsonify(error="Internal server error", message="An unexpected error occurred"), 500
-
-
-@api_bp.errorhandler(503)
-def service_unavailable(e):
-    """Handle service unavailability."""
-    logger.error(f"503 Service Unavailable: {e}")
-    return jsonify(error="Service unavailable", message="The service is temporarily unavailable"), 503
-
-
-# ============ HEALTH & STATUS ROUTES ============
+# ============================================================================
+# Health Check Endpoint (for load balancers & monitoring)
+# ============================================================================
 
 @api_bp.route("/health", methods=["GET"])
 def health_check():
     """
-    Basic liveness check - confirms API is reachable.
-
+    Health check endpoint for load balancers and monitoring services.
+    
     Returns:
-        200: API is up
+        JSON with status and version
+        HTTP 200 if healthy
     """
     return jsonify(
-        status="ok",
-        timestamp=datetime.utcnow().isoformat()
+        status="healthy",
+        version="1.0.0",
+        service="Troithean Dublin Bikes API"
     ), 200
 
 
-@api_bp.route("/status", methods=["GET"])
-def status_check():
-    """
-    Deep status check - verifies all dependent services are reachable.
-
-    Returns:
-        200: All services healthy
-        207: Some services degraded
-        503: All services unavailable
-    """
-    results = {}
-    degraded = False
-
-    # Check database via BikeService
-    try:
-        stations = BikeService.get_all_stations()
-        results["database"] = {
-            "status": "ok",
-            "station_count": len(stations)
-        }
-    except Exception as e:
-        logger.error(f"Status check - database error: {e}")
-        results["database"] = {"status": "unavailable", "error": str(e)}
-        degraded = True
-
-    # Check weather service
-    try:
-        weather = WeatherService.get_current_weather()
-        results["weather_service"] = {
-            "status": "ok" if weather else "unavailable"
-        }
-        if not weather:
-            degraded = True
-    except Exception as e:
-        logger.error(f"Status check - weather service error: {e}")
-        results["weather_service"] = {"status": "unavailable", "error": str(e)}
-        degraded = True
-
-    # Check JCDecaux live feed
-    try:
-        live = JCDecauxService.get_live_stations()
-        results["jcdecaux_service"] = {
-            "status": "ok" if live else "unavailable",
-            "live_station_count": len(live) if live else 0
-        }
-        if not live:
-            degraded = True
-    except Exception as e:
-        logger.error(f"Status check - JCDecaux error: {e}")
-        results["jcdecaux_service"] = {"status": "unavailable", "error": str(e)}
-        degraded = True
-
-    all_down = all(v["status"] == "unavailable" for v in results.values())
-
-    return jsonify(
-        status="degraded" if degraded else "ok",
-        timestamp=datetime.utcnow().isoformat(),
-        services=results
-    ), 503 if all_down else 207 if degraded else 200
-
-
-# ============ STATION ROUTES ============
+# ============================================================================
+# Stations Endpoints
+# ============================================================================
 
 @api_bp.route("/stations", methods=["GET"])
-def get_stations():
+def get_all_stations():
     """
-    Fetch all bike stations from the database.
-
+    Retrieve all Dublin Bikes stations.
+    
     Returns:
-        200: List of all stations
-        503: If service is unavailable
+        JSON array of station objects
+        Each station includes: id, name, address, lat, lng, capacity, status
     """
-    stations = BikeService.get_all_stations()
-
-    if stations is None:
-        logger.error("Failed to fetch stations - service returned None")
-        return jsonify(error="Station data unavailable"), 503
-
-    logger.debug(f"Returning {len(stations)} stations")
-    return jsonify(stations=stations), 200
+    try:
+        stations = BikeService.get_all_stations()
+        return jsonify(stations=[s.to_dict() for s in stations]), 200
+    except Exception as e:
+        logger.error(f"Error fetching stations: {e}")
+        return jsonify(error="Failed to fetch stations"), 500
 
 
 @api_bp.route("/stations/<int:station_id>", methods=["GET"])
-def get_station(station_id: int):
+def get_station(station_id):
     """
-    Fetch a single station by ID.
-
+    Retrieve details for a specific station.
+    
     Args:
-        station_id: Station number
-
+        station_id: The station number/ID
+    
     Returns:
-        200: Station dict
-        404: If station not found
+        JSON object with station details
+        HTTP 404 if station not found
     """
-    station = BikeService.get_station_by_id(station_id)
+    try:
+        station = BikeService.get_station(station_id)
+        if not station:
+            return jsonify(error="Station not found"), 404
+        return jsonify(station.to_dict()), 200
+    except Exception as e:
+        logger.error(f"Error fetching station {station_id}: {e}")
+        return jsonify(error="Failed to fetch station"), 500
 
-    if not station:
-        logger.warning(f"Station {station_id} not found")
-        return jsonify(error="Station not found"), 404
 
-    return jsonify(station=station), 200
-
-
-# ============ AVAILABILITY ROUTES ============
+# ============================================================================
+# Availability Endpoints
+# ============================================================================
 
 @api_bp.route("/availability/<int:station_id>", methods=["GET"])
-def get_availability(station_id: int):
+def get_station_availability(station_id):
     """
-    Fetch availability history for a station.
-
+    Get current bike availability for a specific station.
+    
     Args:
-        station_id: Station number
-
-    Query Params:
-        limit (int): Max records to return (default 100)
-
+        station_id: The station number/ID
+    
     Returns:
-        200: List of availability records
-        404: If no data found for station
+        JSON with available bikes, available stands, and status
+        HTTP 404 if station not found
     """
-    limit = request.args.get("limit", 100, type=int)
-    records = BikeService.get_availability_history(station_id, limit=limit)
-
-    if not records:
-        logger.warning(f"No availability data found for station {station_id}")
-        return jsonify(error="No data found"), 404
-
-    logger.debug(f"Returning {len(records)} availability records for station {station_id}")
-    return jsonify(available=records), 200
-
-
-@api_bp.route("/availability/<int:station_id>/latest", methods=["GET"])
-def get_latest_availability(station_id: int):
-    """
-    Fetch the most recent availability record for a station.
-
-    Args:
-        station_id: Station number
-
-    Returns:
-        200: Latest availability dict
-        404: If no data found for station
-    """
-    record = BikeService.get_latest_availability(station_id)
-
-    if not record:
-        logger.warning(f"No latest availability found for station {station_id}")
-        return jsonify(error="No data found"), 404
-
-    return jsonify(available=record), 200
+    try:
+        availability = BikeService.get_latest_availability(station_id)
+        if not availability:
+            return jsonify(error="Station not found"), 404
+        return jsonify(availability.to_dict()), 200
+    except Exception as e:
+        logger.error(f"Error fetching availability for station {station_id}: {e}")
+        return jsonify(error="Failed to fetch availability"), 500
 
 
-# ============ WEATHER ROUTES ============
+# ============================================================================
+# Weather Endpoints
+# ============================================================================
 
 @api_bp.route("/weather", methods=["GET"])
 def get_weather():
     """
-    Fetch current weather data.
-
+    Get current Dublin weather.
+    
     Returns:
-        200: Weather data dict
-        503: If weather service is unavailable
+        JSON with temperature, humidity, wind speed, conditions
+        HTTP 500 if weather service unavailable
     """
-    weather = WeatherService.get_current_weather()
-
-    if not weather:
-        logger.error("Weather service returned no data")
-        return jsonify(error="Weather unavailable"), 503
-
-    return jsonify(weather=weather), 200
-
-
-# ============ LIVE DATA ROUTES ============
-
-@api_bp.route("/live-stations", methods=["GET"])
-def get_live_stations():
-    """
-    Fetch live station data directly from JCDecaux API.
-
-    Returns:
-        200: List of live station data
-        503: If JCDecaux service is unavailable
-    """
-    data = JCDecauxService.get_live_stations()
-
-    if data is None:
-        logger.error("JCDecaux service returned no data")
-        return jsonify(error="Live station data unavailable"), 503
-
-    logger.debug(f"Returning {len(data)} live stations")
-    return jsonify(stations=data), 200
+    try:
+        weather = WeatherService.get_current_weather()
+        if not weather:
+            return jsonify(error="Weather data unavailable"), 503
+        return jsonify(weather.to_dict()), 200
+    except Exception as e:
+        logger.error(f"Error fetching weather: {e}")
+        return jsonify(error="Failed to fetch weather"), 500
 
 
-# ============ PREDICTIONS (PLACEHOLDER) ============
+# ============================================================================
+# Error Handling (API-specific)
+# ============================================================================
 
-@api_bp.route("/predictions/<int:station_id>", methods=["GET"])
-def get_prediction(station_id: int):
-    """
-    Fetch bike availability prediction for a station.
-
-    Args:
-        station_id: Station number
-
-    Query Params:
-        hour (int): Target hour for prediction (0-23)
-        day  (int): Target day of week (0=Monday, 6=Sunday)
-
-    Returns:
-        200: Prediction result
-        501: Not yet implemented
-    """
-    # TODO: Wire up PredictionService once model is trained and integrated
-    # hour = request.args.get("hour", type=int)
-    # day  = request.args.get("day",  type=int)
-    # result = PredictionService.predict(station_id, hour, day)
-    # return jsonify(prediction=result), 200
-
-    logger.info(f"Prediction requested for station {station_id} - not yet implemented")
-    return jsonify(
-        status="not_implemented",
-        message="Predictions are coming soon.",
-        station_id=station_id
-    ), 501
+@api_bp.errorhandler(400)
+def bad_request(error):
+    """Handle bad request errors."""
+    return jsonify(error="Bad request"), 400
 
 
-@api_bp.route("/predictions/<int:station_id>/range", methods=["GET"])
-def get_prediction_range(station_id: int):
-    """
-    Fetch hourly availability predictions across a full day for a station.
+@api_bp.errorhandler(401)
+def unauthorized(error):
+    """Handle unauthorized access."""
+    return jsonify(error="Unauthorized"), 401
 
-    Args:
-        station_id: Station number
 
-    Query Params:
-        day (int): Target day of week (0=Monday, 6=Sunday)
-
-    Returns:
-        200: List of hourly predictions
-        501: Not yet implemented
-    """
-    # TODO: Wire up PredictionService.predict_day_range(station_id, day)
-    # day = request.args.get("day", type=int)
-    # results = PredictionService.predict_day_range(station_id, day)
-    # return jsonify(predictions=results), 200
-
-    logger.info(f"Prediction range requested for station {station_id} - not yet implemented")
-    return jsonify(
-        status="not_implemented",
-        message="Day range predictions are coming soon.",
-        station_id=station_id
-    ), 501
+@api_bp.errorhandler(405)
+def method_not_allowed(error):
+    """Handle method not allowed errors."""
+    return jsonify(error="Method not allowed"), 405
