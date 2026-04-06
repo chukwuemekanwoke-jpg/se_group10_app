@@ -19,10 +19,10 @@ logger = logging.getLogger(__name__)
 
 class AuthService:
 
-    # ── Constants ─────────────────────────────────────────────
+    # ── Constants
     MIN_PASSWORD_LENGTH = 8
 
-    # ── Validation ────────────────────────────────────────────
+    # ── Validation 
 
     @staticmethod
     def validate_email(email: str) -> bool:
@@ -92,7 +92,7 @@ class AuthService:
 
         return True, ""
 
-    # ── Password Hashing ──────────────────────────────────────
+    # ── Password Hashing 
 
     @staticmethod
     def hash_password(password: str) -> str:
@@ -104,7 +104,7 @@ class AuthService:
         """Verify a plaintext password against its hash."""
         return check_password_hash(password_hash, plaintext_password)
 
-    # ── User Queries ──────────────────────────────────────────
+    # ── User Queries 
 
     @staticmethod
     def get_user_by_email(email: str) -> Optional[User]:
@@ -156,7 +156,7 @@ class AuthService:
             logger.error(f"Error creating user {email}: {e}")
             return False, "Registration failed. Please try again."
 
-    # ── Authentication ────────────────────────────────────────
+    # ── Authentication 
 
     @staticmethod
     def verify_login(email: str, password: str) -> Optional[User]:
@@ -172,8 +172,8 @@ class AuthService:
         return None
 
 
-# ── Standalone Test Block ─────────────────────────────────────
-# Runs without Flask or a database — validates pure logic only
+# ── Standalone Test Block
+# 
 if __name__ == "__main__":
     # Test form validation
     valid, msg = AuthService.validate_registration_form(
