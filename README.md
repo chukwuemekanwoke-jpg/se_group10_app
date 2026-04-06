@@ -36,46 +36,65 @@ The develop branch is simply the branch where all active code and features live.
 ```
 se_group10_app/
 │
-├── app.py
+├── run.py                          # Entry point
 ├── requirements.txt
-├── .gitignore
 ├── .env.example
+├── .gitignore
+├── README.md
 │
-├── static/
-│   ├── index.html                  # Main bike sharing page
-│   ├── css/
-│   │   └── style.css               # Shared styles
-│   └── js/
-│       ├── main.js                 # General frontend logic
-│       ├── auth.js                 # Authentication logic
-│       ├── map.js                  # Map and station marker logic
-│       ├── weather.js              # Weather display logic
-│       ├── charts.js               # Chart/analytics logic
-│       └── prediction.js           # ML prediction UI logic
-│
-├── templates/                      # If Flask templating is used
-│   ├── login.html
-│   ├── register.html
-│   ├── dashboard.html
-│   └── base.html
+├── app/
+│   ├── __init__.py                 # App factory & blueprint registration
+│   ├── config.py                   # Configuration management
+│   ├── extensions.py               # Flask extensions (db, etc.)
+│   │
+│   ├── database/
+│   │   |
+│   │   ├── db.py                   # Database connection & session
+│   │   └── models.py               # SQLAlchemy models
+│   │
+│   ├── services/
+│   │   ├
+│   │   ├── auth_service.py         # Authentication logic
+│   │   ├── jcdecaux_service.py     # JCDecaux API integration
+│   │   ├── weather_service.py      # Weather API integration
+│   │   └── bike_service.py         # Business logic for bikes
+│   │
+│   ├── main/
+│   │   ├── __init__.py
+│   │   └── routes.py               # Main page routes (home, login, register, etc.)
+│   │
+│   ├── api/
+│   │   ├── __init__.py
+│   │   └── routes.py               # API routes (/api/stations, /api/availability, etc.)
+│   │
+│   ├── templates/
+│   │   ├── base.html               # Base template
+│   │   ├── index.html
+│   │   ├── login.html
+│   │   ├── register.html
+│   │   └── subscription.html
+│   │
+│   └── static/
+│       ├── css/
+│       │   ├── style.css
+│       │   ├── login.css
+│       │   └── app.css
+│       │
+│       └── js/
+│           ├── main.js
+│           ├── map.js
+│           ├── login.js
+│           ├── register.js
+│           ├── weather.js
+│           └── prediction.js
 │
 ├── ml_model/
+│   ├── __init__.py
 │   ├── train_model.py
 │   └── model.pkl
 │
-├── data/
-│   └── historical.csv
-│
-├── services/
-│   ├── jcdecaux_service.py
-│   ├── weather_service.py
-│   ├── auth_service.py
-│   └── prediction_service.py
-│
-└── database/
-    ├── db.py
-    ├── models.py
-    └── queries.py
+└── data/
+    └── historical.csv
 ```
 
 
