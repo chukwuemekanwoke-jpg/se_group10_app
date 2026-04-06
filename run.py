@@ -9,11 +9,9 @@ Uses the application factory pattern via create_app().
 import os
 from app import create_app
 
-# Determine which configuration to use
-config_name = os.getenv("FLASK_ENV", "production")
-
 # Create the Flask app
-app = create_app(config_name)
+# Note: create_app() reads FLASK_ENV from .env automatically
+app = create_app()
 
 if __name__ == "__main__":
     # Run the development server
