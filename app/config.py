@@ -29,16 +29,12 @@ class Config:
     DB_NAME = os.getenv("DB_NAME", "dublin_bikes")
     DB_PORT = int(os.getenv("DB_PORT", 3306))
 
-    # SQLAlchemy Configuration
-    SQLALCHEMY_DATABASE_URI = (
-        f"mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}"
-    )
+    
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_ENGINE_OPTIONS = {
         "pool_pre_ping": True,
         "pool_recycle": 3600,
     }
-    
 
     # External API Keys
     JCDECAUX_API_KEY = os.getenv("JCDECAUX_API_KEY")
@@ -53,8 +49,7 @@ class Config:
         if not _val:
             warnings.warn(f"Missing API key: {_key}", RuntimeWarning, stacklevel=2)
 
-
-    # Session Configuration
+   
     SESSION_COOKIE_SECURE = os.getenv("SESSION_COOKIE_SECURE", "False").lower() == "true"
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = "Lax"
@@ -68,22 +63,21 @@ class DevelopmentConfig(Config):
     """Development environment configuration."""
     DEBUG = True
     TESTING = False
-    SQLALCHEMY_ECHO = True #Log SQL queries during development
+    SQLALCHEMY_ECHO = True  # Log SQL queries during development
 
 
 class ProductionConfig(Config):
     """Production environment configuration."""
     DEBUG = False
     TESTING = False
-    SQLALCHEMY_ECHO = False 
-    SESSION_COOKIE_SECURE = True #HTTPS only
-    
+    SQLALCHEMY_ECHO = False
+   
 
 class TestingConfig(Config):
     """Testing environment configuration."""
     DEBUG = True
     TESTING = True
-    SECRET_KEY = "test-secret-key" #Bypasses RuntimeError in CI
+    SECRET_KEY = "test-secret-key"  # Bypasses RuntimeError in CI
     SQLALCHEMY_DATABASE_URI = "sqlite:///:memory:"
     SQLALCHEMY_ECHO = False
 
@@ -94,4 +88,3 @@ config = {
     "production": ProductionConfig,
     "testing": TestingConfig,
 }
-
