@@ -2,14 +2,13 @@
 """
 SQLAlchemy ORM models.
 All table definitions live here.
-
 """
 
 from datetime import datetime
 from app.database.db import db   # Direct import
 
 
-#==========================Users===========================================
+# ==========================Users===========================================
 
 class User(db.Model):
     __tablename__ = "users"
@@ -37,7 +36,8 @@ class User(db.Model):
         }
 
 
-#==========================Stations Table ===================
+# ==========================Stations Table===========================================
+
 class Station(db.Model):
     __tablename__ = "station"
 
@@ -53,18 +53,19 @@ class Station(db.Model):
     status        = db.Column(db.String(32))
 
     def to_dict(self):
+
         return {
-            "id":       self.number,
-            "name":     self.name,
-            "address":  self.address,
-            "lat":      self.position_lat,
-            "lng":      self.position_lng,
-            "capacity": self.bike_stands,
-            "status":   self.status,
+            "number":       self.number,       
+            "name":         self.name,
+            "address":      self.address,
+            "position_lat": self.position_lat, 
+            "position_lng": self.position_lng, 
+            "bike_stands":  self.bike_stands,  
+            "status":       self.status,
         }
 
 
-#==========================Availability Table========================
+# ==========================Availability Table========================================
 
 class Availability(db.Model):
     __tablename__ = "availability"
@@ -85,7 +86,7 @@ class Availability(db.Model):
         }
 
 
-#==========================Weather Table==================================
+# ==========================Weather Table=============================================
 
 class WeatherCurrent(db.Model):
     __tablename__ = "weather_current"
