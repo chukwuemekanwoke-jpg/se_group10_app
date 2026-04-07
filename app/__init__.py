@@ -4,7 +4,7 @@ Creates and configures the app instance.
 """
 
 import os
-import logging
+import logging  # standard-library module — must NOT be shadowed
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -13,10 +13,10 @@ from app.database import db, init_db
 
 load_dotenv()
 
+
 def create_app():
 
-    global logging
-    
+
     app = Flask(
         __name__,
         template_folder="templates",
@@ -35,6 +35,16 @@ def create_app():
 
     app.config.from_object(config_class)
 
+    if not app.config.get("TESTING"):
+        host     = os.getenv("DB_HOST", "localhost")
+        user     = os.getenv("DB_USER", "root")
+        password = os.getenv("DB_PASSWORD", "")
+        name     = os.getenv("DB_NAME", "dublin_bikes")
+        port     = int(os.getenv("DB_PORT", 3306))
+        app.config["SQLALCHEMY_DATABASE_URI"] = (
+            f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}"
+        )
+
     # Logging configuration
     log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
     logging.basicConfig(level=log_level)
@@ -42,10 +52,10 @@ def create_app():
     # File logging for production
     if not app.debug:
         import logging.handlers
-        
+
         if not os.path.exists("logs"):
             os.mkdir("logs")
-        
+
         file_handler = logging.handlers.RotatingFileHandler(
             "logs/troithean.log",
             maxBytes=10240000,  # 10MB
@@ -63,7 +73,7 @@ def create_app():
 
     # CORS
     CORS(app)
-    
+
     # Register blueprints
     from app.main import main_bp
     from app.api import api_bp
