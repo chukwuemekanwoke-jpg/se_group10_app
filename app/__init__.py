@@ -4,7 +4,8 @@ Creates and configures the app instance.
 """
 
 import os
-import logging  # standard-library module — must NOT be shadowed
+import logging # standard-library module — must NOT be shadowed
+import logging.handlers
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -50,9 +51,8 @@ def create_app():
     logging.basicConfig(level=log_level)
 
     # File logging for production
-    if not app.debug:
-        import logging.handlers
-
+    if not app.debug and not app.testing:
+        
         if not os.path.exists("logs"):
             os.mkdir("logs")
 
