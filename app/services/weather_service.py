@@ -214,8 +214,8 @@ class WeatherService:
         """
         db_session = None
         try:
-            from app.database.db import WeatherCurrent
-
+            from app.database.models import WeatherCurrent  
+            
             if not weather_data:
                 logger.warning("Cannot save empty weather data")
                 return False
