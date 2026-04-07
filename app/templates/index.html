@@ -12,7 +12,7 @@
         <div id="sidebar">
             <div class="sidebar-header">
                 <div class="brand">
-                    <div class="brand-badge">DB</div>
+                    <div class="brand-badge">TDB</div>
                     <div class="brand-title">
                         <strong>Troithean</strong>
                         <span>Live stations, weather &amp; route finder</span>
@@ -89,6 +89,8 @@
     </div>
 
     <script src="{{ url_for('static', filename='js/map.js') }}"></script>
+
+    <!----Google Maps API---->
     <script src="https://maps.googleapis.com/maps/api/js?key={{ apikey }}&callback=initMap" async defer></script>
 </body>
 </html>
