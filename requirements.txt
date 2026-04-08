@@ -4,3 +4,6 @@ mysql-connector-python==9.0.0
 flask
 mysql-connector-python
 python-dotenv
+joblib
+pandas
+scikit-learn
