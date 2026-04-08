@@ -60,6 +60,23 @@
               <div class="skeleton" style="width: 50%"></div>
             </div>
           </div>
+
+          <div class="card">
+            <h2>Bike Availability Prediction</h2>
+            <div class="card-body">
+              <p id="predictionHint">Prediction uses the currently selected station.</p>
+              <label for="predictDate">Date</label>
+              <input type="date" id="predictDate">
+              <label for="predictTime">Time</label>
+              <input type="time" id="predictTime">
+              <button id="predictBtn" type="button" class="action-btn">
+                Predict Availability
+              </button>
+              <div id="predictionResult" class="route-result">
+                No prediction yet.
+              </div>
+            </div>
+          </div>
         </div>
 
         <div id="map"></div>

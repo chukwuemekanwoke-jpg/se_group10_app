@@ -3,7 +3,9 @@ import requests
 from flask import jsonify, request, abort
 from . import api_bp
 from app.db import get_db
-
+import joblib
+import pandas as pd
+from datetime import datetime
 
 @api_bp.route("/stations")
 def api_stations():
@@ -149,3 +151,77 @@ def api_live_weather():
         return jsonify(r.json())
     except requests.exceptions.RequestException as e:
         return jsonify({"error": str(e)}), 500
+
+@api_bp.route("/predict")
+def api_predict():
+    station_id = request.args.get("station_id", type=int)
+    date_str = request.args.get("date")
+    time_str = request.args.get("time")
+
+    if station_id is None or not date_str or not time_str:
+        return jsonify({"error": "Missing station_id, date, or time"}), 400
+
+    try:
+        dt = datetime.strptime(f"{date_str} {time_str}", "%Y-%m-%d %H:%M")
+    except ValueError:
+        return jsonify({"error": "Invalid date/time format"}), 400
+
+    db = get_db()
+    cur = db.cursor(dictionary=True)
+
+    # Get station information
+    cur.execute("""
+        SELECT number, name, bike_stands, position_lat, position_lng
+        FROM station
+        WHERE number = %s
+    """, (station_id,))
+    station = cur.fetchone()
+
+    if not station:
+        cur.close()
+        return jsonify({"error": "Station not found"}), 404
+
+    # Get latest weather from database for now
+    cur.execute("""
+        SELECT temp, humidity, pressure
+        FROM weather_current
+        ORDER BY dt_unix DESC
+        LIMIT 1
+    """)
+    weather = cur.fetchone()
+    cur.close()
+
+    if not weather:
+        return jsonify({"error": "Weather data unavailable"}), 500
+
+    # Build feature row to match notebook features
+    input_df = pd.DataFrame([{
+        "station_id": station["number"],
+        "capacity": station["bike_stands"],
+        "hour": dt.hour,
+        "month": dt.month,
+        "day_of_week": dt.weekday(),
+        "is_weekend": 1 if dt.weekday() in [5, 6] else 0,
+        "rush_hour": 1 if dt.hour in [7, 8, 9, 16, 17, 18] else 0,
+        "lat": float(station["position_lat"]),
+        "lon": float(station["position_lng"]),
+        "max_air_temperature_celsius": float(weather["temp"]),
+        "max_relative_humidity_percent": float(weather["humidity"]),
+        "max_barometric_pressure_hpa": float(weather["pressure"]),
+    }])
+
+    try:
+        model = joblib.load("ml_model/best_bike_model.pkl")
+        prediction = model.predict(input_df)[0]
+    except Exception as e:
+        return jsonify({"error": f"Model prediction failed: {str(e)}"}), 500
+
+    prediction = max(0, int(round(float(prediction))))
+
+    return jsonify({
+        "station_id": station["number"],
+        "station_name": station["name"],
+        "date": date_str,
+        "time": time_str,
+        "predicted_bikes": prediction
+    })

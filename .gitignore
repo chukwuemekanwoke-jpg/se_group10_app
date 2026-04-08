@@ -7,3 +7,4 @@ __pycache__/
 .idea/
 .DS_Store
 mysql_data/
+ml_model/final_merged_data.csv
