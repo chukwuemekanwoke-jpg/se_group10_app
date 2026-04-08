@@ -2,6 +2,7 @@ from flask import render_template, current_app, request, redirect, url_for, flas
 from werkzeug.security import generate_password_hash, check_password_hash
 from . import main_bp
 from app.db import get_db
+import re
 
 
 @main_bp.route("/")
@@ -62,6 +63,10 @@ def register_page():
 
         if not all([first_name, last_name, email, phone_number, password, confirm_password]):
             flash("Please fill in all fields.", "error")
+            return render_template("register.html")
+
+        if len(password) < 8 or not re.search(r"[A-Z]", password) or not re.search(r"\d", password):
+            flash("Password must be at least 8 characters long and include at least 1 uppercase letter and 1 number.", "error")
             return render_template("register.html")
 
         if password != confirm_password:

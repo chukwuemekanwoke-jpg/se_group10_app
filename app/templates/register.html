@@ -74,7 +74,19 @@
                         name="password"
                         placeholder="Create a password"
                         required
+                        minlength="8"
+                        pattern="^(?=.*[A-Z])(?=.*\d).{8,}$"
+                        title="Password must be at least 8 characters long and include at least 1 uppercase letter and 1 number."
                     >
+
+                    <div class="password-requirements">
+                        <p>Password must include:</p>
+                        <ul>
+                            <li>At least 8 characters</li>
+                            <li>At least 1 uppercase letter</li>
+                            <li>At least 1 number</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="form-group">

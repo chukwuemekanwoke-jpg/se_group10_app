@@ -143,6 +143,32 @@ body {
     text-align: center;
 }
 
+.password-requirements {
+    margin-top: 10px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: #151515;
+    border: 1px solid #2f2f2f;
+}
+
+.password-requirements p {
+    font-size: 13px;
+    font-weight: 600;
+    color: #d6d6d6;
+    margin-bottom: 8px;
+}
+
+.password-requirements ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.password-requirements li {
+    font-size: 13px;
+    color: #aaaaaa;
+    margin-bottom: 4px;
+}
+
 .login-footer {
     margin-top: 24px;
     text-align: center;
