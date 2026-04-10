@@ -21,13 +21,14 @@ Endpoints:
 - GET /api/weather/latest           — Most recent weather record
 - GET /api/live/bikes               — Live data from JCDecaux API
 - GET /api/live/weather             — Live data from OpenWeather API
+- GET /api/predict                  — Bike availability prediction (ML)
 """
 
 import os
 import requests as http_requests
 from flask import jsonify, request, abort
 from app.api import api_bp
-from app.services import BikeService, JCDecauxService, WeatherService
+from app.services import BikeService, JCDecauxService, WeatherService, PredictionService
 from app.database.db import db
 from app.database.models import Availability, WeatherCurrent
 import logging
@@ -254,6 +255,82 @@ def api_weather():
     except Exception as e:
         logger.error(f"Error fetching weather history: {e}")
         return jsonify(error="Failed to fetch weather"), 500
+
+# ============================================================================
+# PREDICTION ENDPOINTS (Machine Learning)
+# ============================================================================
+
+@api_bp.route("/predict", methods=["GET"])
+def predict_availability():
+    """
+    Predict available bikes for a station at a specific date/time.
+    Uses the trained ML model to forecast bike availability.
+
+    Query Parameters:
+        station_id (int, required): The station number/ID
+        date (str, required): Date in format YYYY-MM-DD (e.g., "2025-04-15")
+        time (str, required): Time in format HH:MM (e.g., "14:30")
+
+    Returns:
+        JSON object with prediction:
+            {
+                "station_id": 42,
+                "station_name": "Parnell Square East",
+                "date": "2025-04-15",
+                "time": "14:30",
+                "predicted_bikes": 12
+            }
+
+    HTTP Status Codes:
+        200: Prediction successful
+        400: Missing or invalid parameters
+        404: Station not found
+        503: Model not available / Service unavailable
+        500: Internal server error
+
+    Example:
+        GET /api/predict?station_id=42&date=2025-04-15&time=14:30
+    """
+    # Extract query parameters
+    station_id = request.args.get("station_id", type=int)
+    date = request.args.get("date", type=str)
+    time = request.args.get("time", type=str)
+    
+    # Validate required parameters
+    if station_id is None or not date or not time:
+        logger.warning(
+            f"Missing required parameters. "
+            f"station_id={station_id}, date={date}, time={time}"
+        )
+        return jsonify(
+            error="Missing required parameters",
+            required=["station_id (int)", "date (YYYY-MM-DD)", "time (HH:MM)"]
+        ), 400
+    
+    # Validate station_id is positive
+    if station_id <= 0:
+        logger.warning(f"Invalid station_id: {station_id}")
+        return jsonify(error="station_id must be a positive integer"), 400
+    
+    try:
+        # Call prediction service
+        prediction = PredictionService.predict(station_id, date, time)
+        return jsonify(prediction), 200
+        
+    except ValueError as e:
+        # Invalid date format or station not found
+        logger.warning(f"Validation error for prediction request: {e}")
+        return jsonify(error=str(e)), 400
+        
+    except RuntimeError as e:
+        # Model not available or prediction service error
+        logger.error(f"Runtime error during prediction: {e}")
+        return jsonify(error="Prediction service unavailable"), 503
+        
+    except Exception as e:
+        # Unexpected error
+        logger.error(f"Unexpected error during prediction: {e}")
+        return jsonify(error="Failed to generate prediction"), 500
 
 
 # ============================================================================
