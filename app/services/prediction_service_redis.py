@@ -1,16 +1,15 @@
 """
 app/services/prediction_service_redis.py - Prediction Service with Redis Caching
-Alternative implementation using Redis for distributed caching.
+Dublin Bikes Web App - COMP30830 Project - Troithean
 
+Updated with lazy model loading to reduce startup memory footprint.
 """
 
 import logging
-import os
 from datetime import datetime
 from functools import wraps
 from flask import current_app
-from ml_model import model
-from app.services import BikeService
+from app.services.bike_service import BikeService
 
 logger = logging.getLogger(__name__)
 
@@ -84,6 +83,8 @@ class PredictionService:
         Predict available bikes for a station at a given date/time.
         Uses Redis for caching historical data.
         
+        NOTE: ML model is lazy-loaded on first call to reduce startup memory.
+        
         Args:
             station_id (int): The station number/ID
             date_str (str): Date in format YYYY-MM-DD
@@ -96,7 +97,10 @@ class PredictionService:
             ValueError: If date/time format is invalid
             RuntimeError: If model is not available
         """
-        # Validate model
+        # Lazy-load ML model only when needed
+        from ml_model import get_model
+        model = get_model()
+        
         if model is None:
             logger.error("ML model not available")
             raise RuntimeError("Prediction model not available. Please try again later.")
@@ -309,4 +313,3 @@ class PredictionService:
         except Exception as e:
             logger.error(f"Error getting cache info: {e}")
             return {"status": "Error", "error": str(e)}
-
