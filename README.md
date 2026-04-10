@@ -142,6 +142,8 @@ DB_NAME=your_database_name
 DB_USER=your_database_username
 DB_PASSWORD=your_database_password
 DB_PORT=3306
+FLASK_ENV=development   # Use 'production' on EC2 — disables debug mode and SQL logging
+REDIS_URL=redis://localhost:6379/0
 #Do not commit the .env file to GitHub.
 ```
 
@@ -150,7 +152,7 @@ Once dependencies are installed and the .env file is configured, run;
 ```
 bash
 
-python app.py
+python run.py
 ```
 Then open the app in your browser:
 ```
@@ -162,11 +164,11 @@ http://127.0.0.1:5000
 The application is deployed on AWS EC2, with AWS RDS used as the database service.
 
 ## EC2 Deployment
-To launch the applicaiton on the EC2 instance:
+To launch the application on the EC2 instance use Gunicorn (do NOT use `python run.py` in production):
 ```
 bash
 
-python app.py
+gunicorn -w 3 -b 0.0.0.0:5000 --timeout 30 wsgi:app
 ```
 Then access the application via:
 

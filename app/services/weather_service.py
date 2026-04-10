@@ -212,15 +212,13 @@ class WeatherService:
         Returns:
             bool: True if saved successfully, False otherwise
         """
-        db_session = None
         try:
-            from app.database.models import WeatherCurrent  
-            
+            from app.database.models import WeatherCurrent
+            from app.database.db import db
+
             if not weather_data:
                 logger.warning("Cannot save empty weather data")
                 return False
-
-            db_session = current_app.db_session
 
             # Extract weather data
             weather_record = WeatherCurrent(
@@ -248,16 +246,15 @@ class WeatherService:
                 weather_icon=weather_data.get("weather", [{}])[0].get("icon"),
             )
 
-            db_session.add(weather_record)
-            db_session.commit()
+            db.session.add(weather_record)
+            db.session.commit()
 
             logger.info("Weather data saved to database")
 
             return True
 
         except Exception as e:
-            if db_session:
-                db_session.rollback()
+            db.session.rollback()
             logger.error(f"Error saving weather data to database: {e}", exc_info=True)
             return False
 
