@@ -8,12 +8,18 @@ import logging # standard-library module — must NOT be shadowed
 import logging.handlers
 from flask import Flask, jsonify, request
 from flask_cors import CORS
+from flask_caching import Cache
 from dotenv import load_dotenv
 from app.config import config
 from app.database import db, init_db
 
 load_dotenv()
 
+cache = Cache(app, config={
+        'CACHE_TYPE': 'redis',
+        'CACHE_REDIS_URL': os.getenv('REDIS_URL', 'redis://localhost:6379/0'),
+        'CACHE_DEFAULT_TIMEOUT': 600
+    })
 
 def create_app():
 
