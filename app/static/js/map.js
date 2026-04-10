@@ -254,8 +254,17 @@ function getUserLocation() {
   const resultPanel = document.getElementById("routeResult");
   if (resultPanel) resultPanel.textContent = "Getting your location...";
 
-  if (!navigator.geolocation) {
-    if (resultPanel) resultPanel.textContent = "Geolocation is not supported by your browser.";
+  // Geolocation requires HTTPS in modern browsers.
+  // If not available or blocked, fall back to address search.
+  const isSecure = location.protocol === "https:" || location.hostname === "localhost";
+
+  if (!navigator.geolocation || !isSecure) {
+    showAddressSearchFallback(
+      resultPanel,
+      !navigator.geolocation
+        ? "Your browser does not support geolocation."
+        : "Automatic location requires a secure (HTTPS) connection on this browser. Search by address instead:"
+    );
     return;
   }
 
@@ -265,14 +274,73 @@ function getUserLocation() {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
-
       showUserLocation();
       if (resultPanel) resultPanel.textContent = "Location captured. Now click 'Find nearest station'.";
     },
-    () => {
-      if (resultPanel) resultPanel.textContent = "Unable to retrieve your location.";
-    }
+    (err) => {
+      // Error codes: 1 = PERMISSION_DENIED, 2 = POSITION_UNAVAILABLE, 3 = TIMEOUT
+      const reasons = {
+        1: "Location permission was denied.",
+        2: "Your location could not be determined.",
+        3: "The location request timed out.",
+      };
+      const reason = reasons[err.code] || "Unknown error.";
+      showAddressSearchFallback(resultPanel, `${reason} Search by address instead:`);
+    },
+    { timeout: 8000, maximumAge: 60000 }
   );
+}
+
+function showAddressSearchFallback(resultPanel, message) {
+  if (!resultPanel) return;
+  resultPanel.innerHTML = `
+    <div style="color:#92400e; margin-bottom:8px; font-size:13px;">${message}</div>
+    <div style="display:flex; gap:6px; margin-bottom:6px;">
+      <input
+        id="addressInput"
+        type="text"
+        placeholder="e.g. O'Connell Street, Dublin"
+        style="flex:1; padding:6px 10px; border:1px solid #d1d5db; border-radius:6px; font-size:13px;"
+      />
+      <button
+        id="geocodeBtn"
+        style="padding:6px 12px; background:#1e293b; color:#fff; border:none; border-radius:6px; cursor:pointer; font-size:13px;"
+      >Go</button>
+    </div>
+    <div id="geocodeStatus" style="font-size:12px; color:#6b7280;"></div>
+  `;
+
+  const input = document.getElementById("addressInput");
+  const btn   = document.getElementById("geocodeBtn");
+  const status = document.getElementById("geocodeStatus");
+
+  const doGeocode = () => {
+    const address = input.value.trim();
+    if (!address) { status.textContent = "Please enter an address."; return; }
+    status.textContent = "Searching…";
+    geocodeAddress(address, status);
+  };
+
+  btn.addEventListener("click", doGeocode);
+  input.addEventListener("keydown", (e) => { if (e.key === "Enter") doGeocode(); });
+}
+
+function geocodeAddress(address, statusEl) {
+  const geocoder = new google.maps.Geocoder();
+  geocoder.geocode({ address: address + ", Dublin, Ireland" }, (results, status) => {
+    if (status === "OK" && results.length > 0) {
+      const loc = results[0].geometry.location;
+      userPosition = { lat: loc.lat(), lng: loc.lng() };
+      showUserLocation();
+
+      const routePanel = document.getElementById("routeResult");
+      if (routePanel) {
+        routePanel.textContent = `Location set to: ${results[0].formatted_address}. Now click 'Find nearest station'.`;
+      }
+    } else {
+      if (statusEl) statusEl.textContent = "Address not found. Try being more specific.";
+    }
+  });
 }
 
 function showUserLocation() {
