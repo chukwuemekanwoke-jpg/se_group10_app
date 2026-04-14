@@ -191,6 +191,18 @@ function showStationInfo(marker, station) {
 
   const panel = document.getElementById("stationDetails");
   if (panel) panel.innerHTML = html;
+
+  // Expose selected station so prediction.js can reference it
+  window.selectedStation = {
+    name: name,
+    number: station.number,
+  };
+
+  // Give the user feedback in the prediction panel
+  const predictionResult = document.getElementById("predictionResult");
+  if (predictionResult && !predictionResult.querySelector(".prediction-result")) {
+    predictionResult.textContent = `Station "${name}" selected. Choose a date and time, then click Predict Availability.`;
+  }
 }
 
 async function loadWeather() {
