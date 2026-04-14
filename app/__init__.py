@@ -58,13 +58,23 @@ def create_app():
             f"mysql+pymysql://{user}:{password}@{host}:{port}/{name}"
         )
 
-    # Initialize cache AFTER app is created
-    redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
-    cache = Cache(app, config={
-        'CACHE_TYPE': 'redis',
-        'CACHE_REDIS_URL': redis_url,
-        'CACHE_DEFAULT_TIMEOUT': 600
-    })
+    # Initialize cache — prefer Redis if available, fall back to in-memory
+    redis_url = os.getenv('REDIS_URL', '')
+    if redis_url:
+        try:
+            import redis as _redis
+            _redis.StrictRedis.from_url(redis_url).ping()
+            cache = Cache(app, config={
+                'CACHE_TYPE': 'redis',
+                'CACHE_REDIS_URL': redis_url,
+                'CACHE_DEFAULT_TIMEOUT': 600,
+            })
+            app.logger.info("Cache: Redis connected")
+        except Exception as _e:
+            app.logger.warning(f"Redis unavailable ({_e}), falling back to SimpleCache")
+            cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 600})
+    else:
+        cache = Cache(app, config={'CACHE_TYPE': 'SimpleCache', 'CACHE_DEFAULT_TIMEOUT': 600})
 
     # Logging configuration
     log_level = getattr(logging, app.config.get("LOG_LEVEL", "INFO").upper(), logging.INFO)
@@ -81,7 +91,7 @@ def create_app():
         file_handler = logging.handlers.RotatingFileHandler(
             str(log_file),
             maxBytes=10_240_000,  # 10MB
-            backupCount=5         # Reduced from 10 for t3.micro disk space
+            backupCount=5
         )
         file_handler.setFormatter(logging.Formatter(
             '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
