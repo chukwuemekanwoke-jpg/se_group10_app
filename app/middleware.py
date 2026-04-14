@@ -61,51 +61,46 @@ def init_middleware(app):
     def handle_bad_request(e):
         """Handle 400 Bad Request errors."""
         logger.warning(f"Bad request: {e}")
-        return (
-            jsonify(error="Bad request", detail=str(e))
-            if request.path.startswith("/api/")
-            else ("Bad request", 400)
-        ), 400
+        if request.path.startswith("/api/"):
+            return jsonify(error="Bad request", detail=str(e)), 400
+        else:
+            return "Bad request", 400
     
     @app.errorhandler(401)
     def handle_unauthorized(e):
         """Handle 401 Unauthorized errors."""
         logger.warning(f"Unauthorized access: {request.path}")
-        return (
-            jsonify(error="Unauthorized")
-            if request.path.startswith("/api/")
-            else ("Unauthorized", 401)
-        ), 401
+        if request.path.startswith("/api/"):
+            return jsonify(error="Unauthorized"), 401
+        else:
+            return "Unauthorized", 401
     
     @app.errorhandler(403)
     def handle_forbidden(e):
         """Handle 403 Forbidden errors."""
         logger.warning(f"Forbidden access: {request.path}")
-        return (
-            jsonify(error="Access denied")
-            if request.path.startswith("/api/")
-            else ("Access denied", 403)
-        ), 403
+        if request.path.startswith("/api/"):
+            return jsonify(error="Access denied"), 403
+        else:
+            return "Access denied", 403
     
     @app.errorhandler(404)
     def handle_not_found(e):
         """Handle 404 Not Found errors."""
         logger.debug(f"Resource not found: {request.method} {request.path}")
-        return (
-            jsonify(error="Resource not found")
-            if request.path.startswith("/api/")
-            else ("Page not found", 404)
-        ), 404
+        if request.path.startswith("/api/"):
+            return jsonify(error="Resource not found"), 404
+        else:
+            return "Page not found", 404
     
     @app.errorhandler(405)
     def handle_method_not_allowed(e):
         """Handle 405 Method Not Allowed errors."""
         logger.warning(f"Method not allowed: {request.method} {request.path}")
-        return (
-            jsonify(error="Method not allowed")
-            if request.path.startswith("/api/")
-            else ("Method not allowed", 405)
-        ), 405
+        if request.path.startswith("/api/"):
+            return jsonify(error="Method not allowed"), 405
+        else:
+            return "Method not allowed", 405
     
     @app.errorhandler(500)
     def handle_internal_error(e):
@@ -114,24 +109,22 @@ def init_middleware(app):
             f"Internal server error [id={g.request_id}]: {e}\n"
             f"{traceback.format_exc()}"
         )
-        return (
-            jsonify(
+        if request.path.startswith("/api/"):
+            return jsonify(
                 error="Internal server error",
                 request_id=g.request_id
-            )
-            if request.path.startswith("/api/")
-            else ("Internal server error", 500)
-        ), 500
+            ), 500
+        else:
+            return "Internal server error", 500
     
     @app.errorhandler(503)
     def handle_service_unavailable(e):
         """Handle 503 Service Unavailable errors."""
         logger.error(f"Service unavailable: {e}")
-        return (
-            jsonify(error="Service unavailable")
-            if request.path.startswith("/api/")
-            else ("Service unavailable", 503)
-        ), 503
+        if request.path.startswith("/api/"):
+            return jsonify(error="Service unavailable"), 503
+        else:
+            return "Service unavailable", 503
     
     @app.errorhandler(Exception)
     def handle_unhandled_exception(e):
