@@ -9,11 +9,28 @@ Includes feature engineering from input parameters and intelligent caching.
 import logging
 from datetime import datetime, timedelta
 from functools import lru_cache
+import pandas as pd
 from flask import current_app
 from ml_model import get_model
 from app.services.bike_service import BikeService
 from app.database.db import db
 from app.database.models import WeatherCurrent
+
+# Must match the column names used during model training exactly
+FEATURE_NAMES = [
+    'station_id',
+    'capacity',
+    'hour',
+    'month',
+    'day_of_week',
+    'is_weekend',
+    'rush_hour',
+    'lat',
+    'lon',
+    'max_air_temperature_celsius',
+    'max_relative_humidity_percent',
+    'max_barometric_pressure_hpa',
+]
 
 logger = logging.getLogger(__name__)
 
@@ -76,6 +93,27 @@ class PredictionService:
     
     @staticmethod
     def predict(station_id, date_str, time_str):
+        """
+        Predict available bikes for a station at a given date/time.
+
+        Args:
+            station_id (int): The station number/ID
+            date_str (str): Date in format YYYY-MM-DD (e.g., "2025-04-15")
+            time_str (str): Time in format HH:MM (e.g., "14:30")
+
+        Returns:
+            dict: Prediction result with keys:
+                - station_id (int)
+                - station_name (str)
+                - date (str)
+                - time (str)
+                - predicted_bikes (int)
+                - from_cache (bool)
+
+        Raises:
+            ValueError: If date/time format is invalid or station not found
+            RuntimeError: If model is not available
+        """
         # Lazy-load ML model on first prediction request
         model = get_model()
         if model is None:
@@ -106,9 +144,13 @@ class PredictionService:
             logger.error(f"Error engineering features for station {station_id}: {e}")
             raise
         
-        # Make prediction
+        # Make prediction — wrap in a named DataFrame so sklearn doesn't
+        # raise a ValueError about missing feature names (model was trained
+        # with a DataFrame, so feature_names_in_ is set on the model)
         try:
-            predicted_bikes = model.predict([features])[0]
+            X = pd.DataFrame([features], columns=FEATURE_NAMES)
+            predicted_bikes = model.predict(X)[0]
+            # Ensure prediction is in realistic range (0 to station capacity)
             station_capacity = station.get('bike_stands', 50)
             predicted_bikes = max(0, min(float(predicted_bikes), station_capacity))
         except Exception as e:
@@ -141,6 +183,13 @@ class PredictionService:
             rush_hour, lat, lon,
             max_air_temperature_celsius, max_relative_humidity_percent,
             max_barometric_pressure_hpa
+
+        Args:
+            station_id (int): Station number
+            dt (datetime): Datetime object for the prediction
+
+        Returns:
+            tuple: (features_list, from_cache_bool)
         """
         # --- Time features ---
         hour        = dt.hour
@@ -148,7 +197,7 @@ class PredictionService:
         day_of_week = dt.weekday()          # 0=Monday, 6=Sunday
         is_weekend  = 1 if day_of_week >= 5 else 0
         # Rush hour: weekday morning (7-9) or evening (17-19)
-        rush_hour   = 1 if (not is_weekend and hour in range(7, 10) or hour in range(17, 20)) else 0
+        rush_hour   = 1 if (not is_weekend and (hour in range(7, 10) or hour in range(17, 20))) else 0
 
         # --- Station spatial / capacity features (WITH CACHING) ---
         try:
@@ -234,6 +283,7 @@ class PredictionService:
     
     @staticmethod
     def clear_station_cache(station_id=None):
+        """Manually clear cache for a station or entire cache."""
         if station_id:
             cache_key = f"station_meta_{station_id}"
             _cache_manager.clear(cache_key)
@@ -244,4 +294,5 @@ class PredictionService:
     
     @staticmethod
     def get_cache_stats():
+        """Get statistics about the cache."""
         return _cache_manager.stats()
