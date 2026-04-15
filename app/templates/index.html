@@ -12,7 +12,18 @@
         <div id="sidebar">
             <div class="sidebar-header">
                 <div class="brand">
-                    <div class="brand-badge">TDB</div>
+                    <div class="brand-badge">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10"/>
+                            <circle cx="12" cy="12" r="2" fill="white" stroke="none"/>
+                            <line x1="12" y1="12" x2="12" y2="2"/>
+                            <line x1="12" y1="12" x2="20.66" y2="7"/>
+                            <line x1="12" y1="12" x2="20.66" y2="17"/>
+                            <line x1="12" y1="12" x2="12" y2="22"/>
+                            <line x1="12" y1="12" x2="3.34" y2="17"/>
+                            <line x1="12" y1="12" x2="3.34" y2="7"/>
+                        </svg>
+                    </div>
                     <div class="brand-title">
                         <strong>Troithean</strong>
                         <span>Live stations, weather &amp; route finder</span>
@@ -24,8 +35,8 @@
                         <a href="{{ url_for('main.subscription_page') }}" class="nav-link">Subscriptions</a>
                         <a href="{{ url_for('main.logout') }}" class="nav-link">Logout</a>
                     {% else %}
-                        <a href="{{ url_for('main.login_page') }}" class="nav-link">Login</a>
-                        <a href="{{ url_for('main.register_page') }}" class="nav-link">Register</a>
+                        <a href="{{ url_for('main.login_page') }}" class="nav-btn nav-btn-ghost">Login</a>
+                        <a href="{{ url_for('main.register_page') }}" class="nav-btn nav-btn-solid">Register</a>
                     {% endif %}
                     <button id="refreshBtn" type="button" class="action-btn action-btn-inline">
                         Refresh
@@ -77,13 +88,32 @@
             <div class="card">
                 <h2>Bike Availability Prediction</h2>
                 <div class="card-body">
-                    <label for="predictDate">Date</label>
-                    <input type="date" id="predictDate">
-                    
-                    <label for="predictTime">Time</label>
-                    <input type="time" id="predictTime">
-                    
-                    <button id="predictBtn" type="button" class="action-btn">Predict Availability</button>
+                    <div class="datetime-row">
+                        <div class="datetime-field">
+                            <label for="predictDate">
+                                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <rect x="3" y="4" width="18" height="18" rx="3"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                Date
+                            </label>
+                            <input type="date" id="predictDate" class="styled-input">
+                        </div>
+                        <div class="datetime-field">
+                            <label for="predictTime">
+                                <svg class="field-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                </svg>
+                                Time
+                            </label>
+                            <input type="time" id="predictTime" class="styled-input">
+                        </div>
+                    </div>
+
+                    <button id="predictBtn" type="button" class="action-btn" style="margin-top: 12px;">Predict Availability</button>
                     <div id="predictionResult" class="prediction-result">
                         Select a station and choose a date/time to get predictions.
                     </div>
