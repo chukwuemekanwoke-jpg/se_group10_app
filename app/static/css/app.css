@@ -46,11 +46,11 @@ body {
   width: 100%;
 }
 
-/* Sidebar header */
+/* Sidebar header — brand on top, nav buttons in a row below */
 .sidebar-header{
   display:flex;
-  align-items:center;
-  justify-content:space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
   margin-bottom: 14px;
 }
@@ -254,25 +254,79 @@ a:hover{
     height: calc(100vh - 420px);
     min-height: 420px;
   }
+}
 
-  .sidebar-header{
-    align-items: flex-start;
-    flex-direction: column;
-  }
-
-  .action-btn-inline{
-    width: 100%;
+@media (max-width: 380px) {
+  .sidebar-nav {
+    flex-wrap: wrap;
   }
 }
 
 /* =====================================================
-   NAV BUTTONS — Login (ghost) & Register (solid green)
+   NAV BUTTONS — Login (ghost), Register (solid green), Refresh
+   Horizontal row sitting under the brand
    ===================================================== */
 .sidebar-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
-  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.nav-btn,
+.sidebar-nav .action-btn-inline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 7px 16px;
+  border-radius: 20px;
+  font-size: 12.5px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  line-height: 1;
+  cursor: pointer;
+  text-decoration: none !important;
+  transition: background 0.18s ease, border-color 0.18s ease,
+              box-shadow 0.18s ease, transform 0.14s ease, color 0.18s ease;
+  white-space: nowrap;
+}
+
+/* Refresh — share the pill shape but keep the dark accent fill.
+   Override the wider .action-btn defaults that would otherwise stretch it. */
+.sidebar-nav .action-btn-inline {
+  width: auto;
+  flex-shrink: 0;
+  background: var(--accent);
+  color: #fff;
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 3px 10px rgba(17, 24, 39, 0.18);
+}
+
+.sidebar-nav .action-btn-inline:hover {
+  background: #000;
+  border-color: #000;
+  transform: translateY(-1px);
+}
+
+.nav-user {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--muted);
+  padding: 0 4px;
+}
+
+.nav-link {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--text);
+  padding: 6px 10px;
+  border-radius: 16px;
+}
+
+.nav-link:hover {
+  background: var(--accent-soft);
+  text-decoration: none;
 }
 
 .nav-btn {
