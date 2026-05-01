@@ -27,13 +27,15 @@
                     <div class="brand-title">
                         <strong>Troithean</strong>
                         <span>Live stations, weather &amp; route finder</span>
+                        {% if logged_in %}
+                            <span class="brand-user">Welcome, {{ user_name }}</span>
+                        {% endif %}
                     </div>
                 </div>
                 <div class="sidebar-nav">
                     {% if logged_in %}
-                        <span class="nav-user">{{ user_name }}</span>
-                        <a href="{{ url_for('main.subscription_page') }}" class="nav-link">Subscriptions</a>
-                        <a href="{{ url_for('main.logout') }}" class="nav-link">Logout</a>
+                        <a href="{{ url_for('main.subscription_page') }}" class="nav-btn nav-btn-ghost">Subscriptions</a>
+                        <a href="{{ url_for('main.logout') }}" class="nav-btn nav-btn-danger">Logout</a>
                     {% else %}
                         <a href="{{ url_for('main.login_page') }}" class="nav-btn nav-btn-ghost">Login</a>
                         <a href="{{ url_for('main.register_page') }}" class="nav-btn nav-btn-solid">Register</a>
