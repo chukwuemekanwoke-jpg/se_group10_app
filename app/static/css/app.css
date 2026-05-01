@@ -89,6 +89,14 @@ body {
   color: var(--muted);
 }
 
+/* Welcome line — same dark accent as the Troithean wordmark for legibility */
+.brand-title .brand-user{
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+}
+
 /* Cards */
 .card{
   background: var(--panel);
@@ -372,6 +380,22 @@ a:hover{
   border-color: #15803d;
   color: #fff;
   box-shadow: 0 5px 14px rgba(22, 163, 74, 0.38);
+  transform: translateY(-1px);
+}
+
+/* Logout — red solid */
+.nav-btn-danger {
+  background: #dc2626;
+  color: #fff;
+  border: 1.5px solid #dc2626;
+  box-shadow: 0 3px 10px rgba(220, 38, 38, 0.28);
+}
+
+.nav-btn-danger:hover {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+  box-shadow: 0 5px 14px rgba(220, 38, 38, 0.38);
   transform: translateY(-1px);
 }
 
