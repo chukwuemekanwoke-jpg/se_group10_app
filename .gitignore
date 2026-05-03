@@ -32,3 +32,5 @@ app.log
 # OS files
 .DS_Store
 Thumbs.db
+.idea/
+ml_model/final_merged_data.csv
